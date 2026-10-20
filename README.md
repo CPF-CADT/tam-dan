@@ -1,354 +1,325 @@
-# AI-Assisted Child Online Safety & Digital Wellbeing
+# Tam Dan — Child Online Safety and Parental Control
 
-## Project Overview
+## 1. Overview
 
-This project will deliver a parental-awareness platform that helps parents understand their children's online activity, identify potentially harmful websites, monitor application usage, and manage internet access for selected online games.
+Tam Dan helps parents understand and manage a child's online activity from a mobile phone.
 
-The system will consist of an Android child application and a web dashboard for parents. The Android application will collect permitted activity and network signals, while the parent dashboard will present usage summaries, website-risk results, alerts, and parental controls.
+The platform allows parents to:
 
-The first release will use rule-based website detection. Its architecture will allow a supervised machine-learning classifier to be added later without redesigning the main applications.
+- See how the child uses installed applications.
+- Review websites and online content that may be unsafe.
+- Receive alerts about risky or unusual activity.
+- Detect possible Telegram group-join activity for parent verification.
+- Set application time limits and schedules.
+- Restrict supported online games and websites.
+- Confirm whether monitoring and restrictions are working.
 
-## Final MVP Deliverables
+Tam Dan is designed for transparent parental supervision. The child application clearly shows that monitoring is active and which permissions are being used.
 
-The completed five-week MVP will provide:
+## 2. Product Applications
 
-- Parent registration and secure authentication.
-- Secure pairing between a parent account and an Android device.
-- Transparent permission and monitoring-status information on the child device.
-- Android application-usage tracking.
-- Collection of domain signals where Android and network conditions allow it.
-- Rule-based website classification and risk alerts.
-- Daily and weekly activity reports for parents.
-- Parent-configured internet restrictions for selected games.
-- Device confirmation of monitoring and policy-enforcement status.
-- A stable risk-classification interface for future machine-learning integration.
+### Parent Mobile Application
 
-## Users
+The parent application is the main control center. It allows parents to:
 
-### Parent
+- Register and sign in securely.
+- Create and manage child profiles.
+- Pair and remove child devices.
+- View daily and weekly application usage.
+- See the child's most-used applications.
+- Review website-risk classifications.
+- Receive usage, website-risk, and device-status alerts.
+- Review possible Telegram group-join activity.
+- Set application schedules and daily limits.
+- Restrict supported online games.
+- Block supported websites or domains.
+- View whether monitoring and restrictions are active.
+- Review or dismiss alerts.
 
-The parent will be able to:
+The parent application is built with Flutter and can support Android and iOS phones.
 
-- Register and sign in.
-- Generate a device-pairing code.
-- View and manage paired devices.
-- Review application usage and observed domains.
-- View website-risk results and alert history.
-- Configure internet restrictions for selected games.
-- Review daily and weekly activity summaries.
+### Child Mobile Application
 
-### Child Device
+The child application provides a clear and transparent device experience. It allows the child-device user to:
 
-The child device will:
+- Pair the device with an authorized parent.
+- See what information the application collects.
+- Review and grant required permissions.
+- View monitoring and synchronization status.
+- View active schedules and restrictions.
+- See whether a restriction is active or has failed.
+- Continue basic monitoring while temporarily offline.
 
-- Pair with an authorized parent account.
-- Explain and request the required Android permissions.
-- Collect permitted application-usage and domain signals.
-- Synchronize collected events with the backend.
-- Receive and store parental policies.
-- Apply supported network restrictions locally.
-- Display service health, permission state, and last synchronization time.
+The child application is built with Flutter. Android is the primary child-device platform.
 
-## Main Features
+## 3. Core Product Features
 
-### 1. Device Pairing
+### Application-Usage Monitoring
 
-The parent will generate a secure, expiring pairing code. The child enters the code to register the device and receive separate device credentials.
+- Track which applications are used.
+- Calculate usage duration by application.
+- Show daily and weekly screen-time summaries.
+- Identify the most frequently used applications.
+- Detect late-night usage.
+- Detect when a parent-configured usage limit is exceeded.
+- Compare current usage with previous periods.
 
-### 2. Application-Usage Monitoring
+### Website and Domain Safety
 
-The Android application will use `UsageStatsManager` to collect permitted information about application usage and gaming duration.
+- Observe supported website-domain activity.
+- Classify domains into safety-risk categories.
+- Analyze approved public webpage text when available.
+- Show the classification category and confidence.
+- Alert parents about repeated or high-risk results.
+- Return `UNKNOWN` when there is not enough evidence.
+- Allow parents to block supported domains.
 
-### 3. Website Monitoring
+### Possible Telegram Group-Join Activity
 
-The Android VPN service will observe supported domain or network signals. Monitoring coverage may vary by application and protocol, so the system will report only what it can technically observe.
+Tam Dan can identify activity that may indicate the child opened a Telegram group invitation from Facebook or a web browser.
 
-### 4. Website-Risk Detection
+The feature allows the parent to:
 
-The MVP will classify websites using:
+- Receive a possible group-join activity alert.
+- See when the activity happened.
+- See the application from which the Telegram activity started when available.
+- Review or dismiss the alert.
+- Decide whether to discuss or verify the activity with the child.
 
-- Known-domain blocklists.
-- Keyword matching against publicly retrievable website content.
-- Cached results from previous classifications.
-- An `UNKNOWN` result when there is insufficient evidence.
+This feature provides a review signal. It cannot confirm that the child completed the group join, identify every group, or read private group content.
 
-Supported categories:
+### Parent Alerts
+
+Parents may receive alerts for:
+
+- High-risk website classifications.
+- Repeated visits to risky content categories.
+- Excessive application usage.
+- Late-night activity.
+- Possible Telegram group-join activity.
+- Removed monitoring permissions.
+- Failed synchronization.
+- Failed or unsupported restrictions.
+
+### Application Schedules and Limits
+
+- Set daily time limits for selected applications.
+- Create allowed or blocked schedules.
+- Apply different rules for selected applications.
+- Temporarily pause or resume a restriction.
+- Show whether the child device received the latest rule.
+
+### Online-Game Internet Restriction
+
+- Select a supported game installed on the child device.
+- Request an internet restriction for that game.
+- Keep unrelated applications connected where technically possible.
+- Show whether enforcement is pending, active, unsupported, or failed.
+- Report `ACTIVE` only after the child device confirms enforcement.
+
+A restricted game may continue to provide offline functionality.
+
+### Website Blocking
+
+- Block a supported domain.
+- Optionally include its subdomains.
+- Apply a temporary or recurring schedule.
+- Remove the restriction from the parent application.
+- Show whether the child device successfully applied the restriction.
+
+### Offline Operation and Device Health
+
+- Store activity temporarily when the child device is offline.
+- Synchronize stored activity when connectivity returns.
+- Prevent duplicate activity records.
+- Preserve the latest accepted restriction policy.
+- Show the last successful synchronization time.
+- Report missing permissions or inactive monitoring.
+- Report policy and enforcement failures.
+
+## 4. Five Main Development Tasks
+
+The project is divided into five software components. Machine-learning training is separate from these tasks.
+
+Detailed PRDs are available in the [`tasks/`](tasks/README.md) folder.
+
+### Task 1 — Parent Mobile Application
+
+**Technology:** Flutter
+
+- Parent account and authentication screens.
+- Child-profile management.
+- Device pairing and removal.
+- Application-usage reports.
+- Website-risk results and alerts.
+- Telegram activity review alerts.
+- Application schedules and restrictions.
+- Game and website controls.
+- Device and policy status.
+- Parent notifications.
+
+### Task 2 — Child Mobile Application
+
+**Technology:** Flutter
+
+- Device-pairing flow.
+- Monitoring and privacy explanation.
+- Permission setup guidance.
+- Monitoring and synchronization status.
+- Active restriction information.
+- Error and recovery guidance.
+- Communication with the Android monitoring engine.
+
+### Task 3 — Android Monitoring and Enforcement Engine
+
+**Technology:** Kotlin and Android platform APIs
+
+- Application-usage collection.
+- Supported domain observation.
+- Detection signals for possible Telegram group-join activity.
+- Secure offline event storage.
+- Background synchronization support.
+- Application and domain restriction support.
+- Local VPN management.
+- Permission and enforcement health reporting.
+
+### Task 4 — Identity and Device Backend
+
+**Technology:** Spring Boot and PostgreSQL
+
+- Parent registration and authentication.
+- Family and child-profile ownership.
+- Secure, expiring device-pairing codes.
+- Child-device registration.
+- Separate device authentication.
+- Device credential rotation and revocation.
+- Authorization and consent records.
+- Security audit history.
+
+### Task 5 — Safety and Policy Backend
+
+**Technology:** Spring Boot, PostgreSQL, and optional Redis
+
+- Activity and domain-data collection.
+- Daily and weekly report generation.
+- Rule-based activity analysis.
+- Website-risk classification integration.
+- Parent-alert generation.
+- Telegram activity review events.
+- Application, game, and website policies.
+- Policy versioning and delivery.
+- Device confirmation and failure tracking.
+
+The two backend tasks can be developed as separate modules inside one Spring Boot application.
+
+## 5. Machine-Learning Opportunities
+
+Machine-learning development is managed separately from the five software tasks.
+
+### Domain Classification
+
+The domain model estimates the safety category of a website domain.
+
+- Uses approved domain-level features.
+- Provides a fast result when webpage text is unavailable.
+- Returns a category, confidence, and model version.
+- Returns `UNKNOWN` when the domain does not provide enough evidence.
+
+### Public-Content Text Classification
+
+The content model analyzes approved text from publicly accessible webpages.
+
+- Uses page titles, headings, metadata, and visible text.
+- Supports Khmer, English, and mixed-language evaluation when data permits.
+- May return multiple relevant risk categories.
+- Does not read private messages or decrypt the child's HTTPS traffic.
+
+### Activity-Risk Analysis
+
+An optional activity model may analyze aggregated usage patterns.
+
+- Excessive application usage.
+- Late-night activity.
+- Sudden changes in usage.
+- Repeated exposure to risky content categories.
+- Repeated policy violations.
+
+This model requires sufficient reviewed historical data. Until then, Tam Dan uses clear statistical rules. Activity results must not be presented as addiction, intent, personality, or mental-health diagnoses.
+
+### Risk Categories
 
 - `SAFE`
-- `GAMBLING`
 - `ADULT`
-- `SCAM`
+- `GAMBLING`
+- `SCAM_OR_FRAUD`
+- `VIOLENCE`
+- `DRUGS`
+- `SELF_HARM`
+- `OTHER_RISK`
 - `UNKNOWN`
 
-Rule-based classifications are preliminary safety signals, not proof that a website is harmful.
-
-### 5. Parent Dashboard
-
-The web dashboard will show:
-
-- Paired devices and their current status.
-- Daily and weekly application usage.
-- Observed domains and classification results.
-- Risk-alert history.
-- Configured game-restriction policies.
-- Monitoring, synchronization, and enforcement failures.
-
-### 6. Game Internet Restrictions
-
-Parents will be able to select supported game applications and configure internet restrictions. The child application will receive the policy and use local VPN filtering to restrict the selected application's network access.
-
-A policy will not be shown as successfully enforced until the child device confirms it.
-
-## System Architecture
+## 6. System Architecture
 
 ```text
-┌──────────────────────────┐       ┌──────────────────────────┐
-│ Android Child App        │       │ Parent Web Dashboard     │
-│ Flutter + Kotlin         │       │ Next.js                  │
-│                          │       │                          │
-│ • Usage monitoring       │       │ • Devices                │
-│ • VPN service            │       │ • Usage reports          │
-│ • Policy enforcement     │       │ • Risks and alerts       │
-└────────────┬─────────────┘       └────────────┬─────────────┘
-             │                                  │
-             └──────────────┬───────────────────┘
-                            │
-                 ┌──────────▼───────────┐
-                 │ Spring Boot REST API │
-                 │                      │
-                 │ • Authentication     │
-                 │ • Device pairing     │
-                 │ • Activity storage   │
-                 │ • Policies           │
-                 │ • Risks and alerts   │
-                 └───────┬────────┬─────┘
-                         │        │
-              ┌──────────▼──┐  ┌──▼───────────────────┐
-              │ PostgreSQL  │  │ FastAPI Risk Service │
-              │             │  │ Retrieval + rules    │
-              └─────────────┘  └──────────┬───────────┘
-                                          │
-                               Future ML classifier
+┌────────────────────────────┐
+│ Parent Flutter Application │
+│ Reports, alerts, controls  │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────────┐
+│ Spring Boot Application                      │
+│                                              │
+│ ┌───────────────────┐  ┌──────────────────┐ │
+│ │ Identity & Device │  │ Safety & Policy  │ │
+│ └───────────────────┘  └────────┬─────────┘ │
+└──────────────┬──────────────────┼───────────┘
+               │                  │
+               │                  ├──► Domain Classification
+               │                  ├──► Content Classification
+               │                  └──► Optional Activity Analysis
+               │
+               ▼
+┌────────────────────────────┐
+│ Child Flutter Application  │
+│ Pairing, consent, status   │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Kotlin Android Engine      │
+│ Monitoring and enforcement│
+└────────────────────────────┘
 ```
 
-The Spring Boot backend will be implemented as a modular monolith rather than separate Java microservices.
+## 7. Main Data Flow
 
-Planned backend modules:
+### Activity and Safety Flow
 
 ```text
-com.childsafety
-├── auth
-├── user
-├── device
-├── pairing
-├── activity
-├── monitoring
-├── risk
-├── policy
-├── notification
-└── common
-    ├── security
-    ├── exception
-    └── config
+Child device collects permitted activity
+    → Backend stores and analyzes the activity
+    → ML services classify supported website evidence
+    → Backend creates reports and alerts
+    → Parent reviews the information in the mobile app
 ```
 
-## Core Data Entities
+### Parent-Control Flow
 
-| Entity | Responsibility |
-|---|---|
-| `User` | Parent account |
-| `ChildDevice` | Device identity, owner, and status |
-| `PairingCode` | Secure and expiring device pairing |
-| `DeviceCredential` | Authentication for paired devices |
-| `AppUsageRecord` | Application usage duration by date |
-| `DomainObservation` | Observed domain and timestamp |
-| `RiskAssessment` | Category, evidence, method, and status |
-| `RiskAlert` | Parent-facing safety alert |
-| `GamePolicy` | Package-level internet restriction |
-| `DevicePolicyVersion` | Policy delivery and acknowledgement |
+```text
+Parent creates a restriction
+    → Backend sends the latest policy to the child device
+    → Android engine attempts enforcement
+    → Child device reports the result
+    → Parent sees the confirmed status
+```
 
-## Main Workflows
+## 8. Important Boundaries
 
-### Device Setup
-
-1. The parent registers and signs in.
-2. The parent generates an expiring pairing code.
-3. The child enters the code on the Android device.
-4. The backend registers the device and issues device credentials.
-5. The child application guides the user through Android permissions.
-6. The device begins monitoring and synchronization.
-
-### Website Monitoring
-
-1. The Android application observes a domain where technically possible.
-2. The backend checks for an existing classification.
-3. An unknown domain may be sent to the risk service.
-4. The risk service retrieves public content and applies classification rules.
-5. The result is stored and displayed in the parent dashboard.
-6. A risk alert is created when appropriate.
-
-### Game Restriction
-
-1. The parent selects a game application.
-2. The parent enables an internet-restriction policy.
-3. The backend stores and versions the policy.
-4. The child device downloads and stores the update.
-5. The VPN service applies the restriction locally.
-6. The child device reports whether enforcement succeeded.
-
-## Security, Privacy, and Reliability
-
-### Security
-
-- Parent authentication will use JWT-based sessions.
-- Paired devices will use separate device credentials, not the parent's JWT.
-- Pairing codes will expire and be usable only for authorized pairing.
-- Every parent request will verify resource ownership.
-- Every device request will verify device identity.
-- Production communication will require HTTPS.
-
-### Privacy
-
-- Monitoring will be visible to the child-device user.
-- The system will collect only information required by the MVP.
-- Private messages will not be collected.
-- HTTPS traffic will not be decrypted.
-- Collected activity will have a limited retention period.
-
-### Reliability
-
-- Activity events will be uploaded in batches.
-- Risk classifications will be cached.
-- Received policies will be stored locally on the device.
-- The system will report VPN, permission, synchronization, and enforcement failures.
-- Inaccessible website content will never be automatically classified as safe.
-
-## Five-Week Development Plan
-
-### Week 1 — Android Feasibility and Project Foundation
-
-**Objective:** Prove that Android usage monitoring and selective network filtering are technically feasible.
-
-- [ ] Create the Flutter child application and Kotlin platform-channel bridge.
-- [ ] Implement the usage-access permission flow.
-- [ ] Retrieve application usage with `UsageStatsManager`.
-- [ ] Create a basic Android `VpnService` prototype.
-- [ ] Inspect which domain and network signals are observable.
-- [ ] Test routing or dropping traffic for one selected application.
-- [ ] Initialize the backend, web application, database, and project structure.
-
-**Completion target:** A physical Android device reports application usage, and the VPN prototype demonstrates selective filtering for a test application.
-
-### Week 2 — Backend Authentication, Pairing, and Ingestion
-
-**Objective:** Establish secure communication between parent accounts, child devices, and the backend.
-
-- [ ] Implement parent registration and login.
-- [ ] Add JWT authentication and authorization.
-- [ ] Implement secure, expiring pairing codes.
-- [ ] Register child devices and issue device credentials.
-- [ ] Create PostgreSQL entities and migrations.
-- [ ] Implement batch application-usage ingestion.
-- [ ] Implement batch domain-observation ingestion.
-- [ ] Connect the Android application to the backend.
-
-**Completion target:** A parent can pair a physical Android device, and the device can securely upload usage and domain events.
-
-### Week 3 — Parent Dashboard and Policy Management
-
-**Objective:** Give parents visibility into device activity and control over game policies.
-
-- [ ] Build parent registration and login pages.
-- [ ] Build device-pairing and device-management screens.
-- [ ] Create the activity overview dashboard.
-- [ ] Display daily and weekly application usage.
-- [ ] Display observed domains and device status.
-- [ ] Implement game-policy creation and updates.
-- [ ] Synchronize versioned policies to Android.
-- [ ] Store policies locally and report acknowledgements.
-
-**Completion target:** A parent can view synchronized activity and configure a policy that reaches the paired device.
-
-### Week 4 — Website-Risk Detection and Alerts
-
-**Objective:** Add rule-based website analysis without requiring a trained model.
-
-- [ ] Create the FastAPI classification interface.
-- [ ] Retrieve accessible public website content safely.
-- [ ] Add known-domain blocklists.
-- [ ] Add keyword-based classification rules.
-- [ ] Return `UNKNOWN` when evidence is insufficient.
-- [ ] Cache classification results.
-- [ ] Integrate the risk service with Spring Boot.
-- [ ] Store risk assessments and generate alerts.
-- [ ] Display risk results and alert history on the dashboard.
-
-**Completion target:** Observed domains can be classified by rules, stored by the backend, and displayed to parents with appropriate alerts.
-
-### Week 5 — Integration, Testing, and MVP Demonstration
-
-**Objective:** Stabilize the complete workflow and demonstrate the final MVP on a physical Android device.
-
-- [ ] Test registration, pairing, monitoring, and synchronization end to end.
-- [ ] Test website classification and alert delivery.
-- [ ] Test policy updates and acknowledgements.
-- [ ] Verify restriction of one supported game.
-- [ ] Confirm that unrelated applications remain connected.
-- [ ] Add monitoring and enforcement health indicators.
-- [ ] Review authorization and device-identity checks.
-- [ ] Review privacy, data retention, battery use, and failure handling.
-- [ ] Package local services with Docker Compose.
-- [ ] Prepare the final MVP demonstration and documentation.
-
-**Completion target:** All major workflows operate together, and the MVP meets the acceptance criteria below.
-
-## Scope-Control Rule
-
-Selective per-application VPN filtering is the highest technical risk. If reliable filtering is not achieved by the end of Week 2, the team will continue delivering usage monitoring, backend integration, the dashboard, and risk detection while treating game restriction as experimental.
-
-The system must never report a restriction as active unless the Android device confirms enforcement.
-
-## MVP Acceptance Criteria
-
-The MVP is complete when:
-
-- A parent can register and pair a physical Android device.
-- The Android application can collect application-usage statistics.
-- The Android application can report technically observable domains.
-- The backend can securely store and retrieve device activity.
-- Rule-based website classification works.
-- Risk assessments and alerts appear in the parent dashboard.
-- The parent can configure a game-restriction policy.
-- One supported game can be restricted while unrelated applications remain connected.
-- The system clearly reports inactive monitoring and failed enforcement.
-- All major workflows can be demonstrated on a physical Android device.
-
-## Out of Scope for the Initial MVP
-
-- Telegram group monitoring.
-- Analysis of individual social-media posts or videos.
-- HTTPS decryption.
-- Collection of private messages.
-- Prediction of child behavior or mental-health conditions.
-- iOS support.
-- Production-grade anti-tampering controls.
-- A trained machine-learning model.
-
-## Development After the MVP
-
-### Phase 2 — Machine-Learning Integration
-
-Prepare a labeled dataset, train and compare supervised text classifiers, evaluate them on unseen websites, and integrate the selected model through the existing FastAPI interface.
-
-### Phase 3 — Khmer and Multilingual Classification
-
-Improve detection for Khmer, English, and mixed-language websites. Compare word-based, character-based, and multilingual approaches.
-
-### Phase 4 — Experimental Telegram Research
-
-Investigate whether transparent and consented Android accessibility observations can provide useful public group metadata. This work will be added only if its technical coverage and privacy impact are acceptable.
-
-### Phase 5 — Academic Evaluation
-
-Compare rule-based and machine-learning detection, measure Android monitoring feasibility, evaluate whether alerts improve parental awareness, and document the results for possible academic publication.
-
+- The parent application may run on Android or iOS.
+- Android is the primary child-device platform.
+- Future iOS child support requires a separate Swift implementation and will provide fewer network-control features.
+- Monitoring permissions and VPN approval must be granted on the child device.
+- The system cannot reliably confirm Facebook or Telegram group membership.
+- The system does not collect private messages, passwords, keystrokes, or decrypted HTTPS content.
+- Website classifications and activity alerts are safety indicators for parent review, not proof of harmful behavior.
