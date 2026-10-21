@@ -120,22 +120,40 @@ public class PairingService {
         return new DeviceCredentialResponse(device.getId(), credential, expiresAt, new ChildContextResponse(child.getId(), child.getDisplayName(), pairingCode.getFamily().getId()));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PairingCode requireUsableCode(String rawCode) {
-        if (rawCode == null || rawCode.isBlank()) throw new BadRequestException("Pairing code is invalid or expired");
+        if (rawCode == null || rawCode.isBlank()) {
+            throw new BadRequestException("Pairing code is invalid or expired");
+        }
+
         String codeHash = hashPairingCode(rawCode.trim());
-        PairingCode candidate = pairingCodeRepository.findByCodeHash(codeHash).orElse(null);
+        Instant now = Instant.now();
+
+        PairingCode candidate = pairingCodeRepository
+                .findByCodeHash(codeHash)
+                .orElse(null);
+
         if (candidate != null && candidate.getFailedAttempts() >= securityPolicy.pairingMaxAttempts()) {
             throw new BadRequestException("Pairing code is invalid or expired");
         }
-        if (candidate != null && candidate.getUsedAt() == null && !candidate.getExpiresAt().isAfter(Instant.now())) {
+
+        if (candidate != null && candidate.getUsedAt() == null && !candidate.getExpiresAt().isAfter(now)) {
             pairingCodeRepository.incrementFailedAttempts(candidate.getId());
         }
-        return pairingCodeRepository.findUsableByCodeHash(codeHash, Instant.now()).orElseGet(() ->
-            pairingCodeRepository.findByCodeHash(codeHash).map(pairing -> {
-                if (pairing.getUsedAt() != null) throw new ReplayedPairingCodeException();
-                throw new BadRequestException("Pairing code is invalid or expired");
-            }).orElseThrow(() -> new BadRequestException("Pairing code is invalid or expired")));
+
+        PairingCode usableCode = pairingCodeRepository
+                .findUsableByCodeHash(codeHash, now)
+                .orElse(null);
+
+        if (usableCode != null) {
+            return usableCode;
+        }
+
+        if (candidate != null && candidate.getUsedAt() != null) {
+            throw new ReplayedPairingCodeException();
+        }
+
+        throw new BadRequestException("Pairing code is invalid or expired");
     }
 
     public String hashPairingCode(String rawCode) {
