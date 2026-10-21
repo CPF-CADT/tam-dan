@@ -1,13 +1,12 @@
 package com.tamdan.controller;
 
-import com.tamdan.dto.request.AccountUpdateRequest;
 import com.tamdan.dto.request.KeyAndPasswordVM;
-import com.tamdan.dto.request.ManagedUserVM;
 import com.tamdan.dto.request.PasswordChangeDTO;
-import com.tamdan.dto.response.AdminUserDTO;
+import com.tamdan.dto.request.RegisterParentRequest;
+import com.tamdan.dto.request.UpdateParentRequest;
 import com.tamdan.dto.response.ApiResponse;
+import com.tamdan.dto.response.ParentAccountResponse;
 import com.tamdan.exception.BadRequestException;
-import com.tamdan.exception.ResourceNotFoundException;
 import com.tamdan.mail.MailService;
 import com.tamdan.security.AuthenticatedUserIdResolver;
 import com.tamdan.service.UserService;
@@ -20,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,31 +35,33 @@ public class AccountResource {
 
     private final UserService userService;
     private final MailService mailService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticatedUserIdResolver authenticatedUserIdResolver;
 
     @PostMapping(ApiPaths.API + "/register")
-    public ResponseEntity<ApiResponse<Void>> registerAccount(@Valid @RequestBody ManagedUserVM request) {
-        var user = userService.registerUser(request);
-        mailService.sendActivationEmail(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
+    public ResponseEntity<ApiResponse<ParentAccountResponse>> registerAccount(@Valid @RequestBody RegisterParentRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userService.register(request)));
     }
 
     @GetMapping(ApiPaths.API + "/activate")
     public ApiResponse<Void> activateAccount(@RequestParam String key) {
-        userService.activateRegistration(key).orElseThrow(() -> new ResourceNotFoundException("Activation key was not found"));
+        userService.activate(key);
+        return ApiResponse.success();
+    }
+
+    @PostMapping(ApiPaths.API + "/activate/resend")
+    public ApiResponse<Void> requestActivationResend(@RequestBody @Email @Size(min = 5, max = 254) String email) {
+        userService.requestActivationResend(email);
         return ApiResponse.success();
     }
 
     @GetMapping(ApiPaths.ACCOUNT)
-    public ApiResponse<AdminUserDTO> getAccount() {
-        return ApiResponse.success(userService.getCurrentUser(authenticatedUserIdResolver.requireCurrentUserId()));
+    public ApiResponse<ParentAccountResponse> getAccount() {
+        return ApiResponse.success(userService.getCurrent(authenticatedUserIdResolver.requireCurrentUserId()));
     }
 
     @PostMapping(ApiPaths.ACCOUNT)
-    public ApiResponse<Void> saveAccount(@Valid @RequestBody AccountUpdateRequest request) {
-        userService.updateCurrentUser(authenticatedUserIdResolver.requireCurrentUserId(), request);
-        return ApiResponse.success();
+    public ApiResponse<ParentAccountResponse> saveAccount(@Valid @RequestBody UpdateParentRequest request) {
+        return ApiResponse.success(userService.update(authenticatedUserIdResolver.requireCurrentUserId(), request));
     }
 
     @PostMapping(ApiPaths.ACCOUNT + "/change-password")
@@ -83,7 +83,6 @@ public class AccountResource {
     @PostMapping(ApiPaths.ACCOUNT + "/reset-password/finish")
     public ApiResponse<Void> finishPasswordReset(@Valid @RequestBody KeyAndPasswordVM request) {
         if (userService.completePasswordReset(request.newPassword(), request.key()).isEmpty()) {
-            passwordEncoder.encode(request.newPassword());
             throw new BadRequestException("Reset key is invalid or expired");
         }
         return ApiResponse.success();

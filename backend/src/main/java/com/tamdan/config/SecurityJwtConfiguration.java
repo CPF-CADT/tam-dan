@@ -44,7 +44,7 @@ public class SecurityJwtConfiguration {
                 ) {
                     metersService.trackTokenMalformed();
                 } else {
-                    LOG.error("Unknown JWT error {}", e.getMessage());
+                    LOG.error("Unknown JWT validation failure: {}", e.getClass().getSimpleName());
                 }
                 throw e;
             }

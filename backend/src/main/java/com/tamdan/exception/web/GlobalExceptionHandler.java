@@ -3,6 +3,12 @@ package com.tamdan.exception.web;
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
 import com.tamdan.dto.response.FieldErrorVM;
+import com.tamdan.exception.BadRequestException;
+import com.tamdan.exception.ConflictException;
+import com.tamdan.exception.ForbiddenException;
+import com.tamdan.exception.ResourceNotFoundException;
+import com.tamdan.exception.RateLimitExceededException;
+import com.tamdan.exception.ReplayedPairingCodeException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
@@ -19,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -50,6 +57,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final String FIELD_ERRORS_KEY = "fieldErrors";
     private static final String MESSAGE_KEY = "message";
     private static final String PATH_KEY = "path";
+    private static final String CODE_KEY = "code";
+    private static final String REQUEST_ID_KEY = "requestId";
     private static final boolean CAUSAL_CHAIN_ENABLED = false;
 
     private static final Logger LOG = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -58,7 +67,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<Object> handleAnyException(Throwable ex, NativeWebRequest request) {
-        LOG.debug("Converting Exception to Problem Details:", ex);
+        LOG.debug("Converting exception to problem details: {}", ex.getClass().getSimpleName());
         ProblemDetailWithCause pdCause = wrapAndCustomizeProblem(ex, request);
         return handleExceptionInternal((Exception) ex, pdCause, buildHeaders(ex), HttpStatusCode.valueOf(pdCause.getStatus()), request);
     }
@@ -111,12 +120,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             getMappedMessageKey(err) != null ? getMappedMessageKey(err) : "error.http." + problem.getStatus()
         );
 
+        if (problemProperties == null || !problemProperties.containsKey(CODE_KEY)) problem.setProperty(CODE_KEY, getErrorCode(err));
+
         if (problemProperties == null || !problemProperties.containsKey(PATH_KEY)) problem.setProperty(PATH_KEY, getPathValue(request));
+
+        String requestId = getRequestId(request);
+        if (requestId != null && (problemProperties == null || !problemProperties.containsKey(REQUEST_ID_KEY))) problem.setProperty(REQUEST_ID_KEY, requestId);
 
         if (
             err instanceof MethodArgumentNotValidException fieldException &&
             (problemProperties == null || !problemProperties.containsKey(FIELD_ERRORS_KEY))
         ) problem.setProperty(FIELD_ERRORS_KEY, getFieldErrors(fieldException));
+        else if (err instanceof ConstraintViolationException violationException && (problemProperties == null || !problemProperties.containsKey(FIELD_ERRORS_KEY))) {
+            problem.setProperty(
+                FIELD_ERRORS_KEY,
+                violationException.getConstraintViolations().stream().map(violation ->
+                    new FieldErrorVM("", violation.getPropertyPath().toString(), violation.getMessage())
+                ).toList()
+            );
+        }
 
         problem.setCause(buildCause(err.getCause(), request).orElse(null));
 
@@ -180,10 +202,48 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private String getMappedMessageKey(Throwable err) {
         if (err instanceof MethodArgumentNotValidException || err instanceof ConstraintViolationException) {
             return ErrorConstants.ERR_VALIDATION;
-        } else if (err instanceof ConcurrencyFailureException || err.getCause() instanceof ConcurrencyFailureException) {
+        } else if (err instanceof BadRequestException) {
+            return ErrorConstants.ERR_BAD_REQUEST;
+        } else if (err instanceof ConflictException) {
+            return ErrorConstants.ERR_CONFLICT;
+        } else if (err instanceof ForbiddenException) {
+            return ErrorConstants.ERR_FORBIDDEN;
+        } else if (err instanceof ResourceNotFoundException) {
+            return ErrorConstants.ERR_NOT_FOUND;
+        } else if (err instanceof RateLimitExceededException) {
+            return ErrorConstants.ERR_RATE_LIMIT;
+        } else if (err instanceof ConcurrencyFailureException || err.getCause() instanceof ConcurrencyFailureException || err instanceof DataIntegrityViolationException) {
             return ErrorConstants.ERR_CONCURRENCY_FAILURE;
         }
         return null;
+    }
+
+    private String getErrorCode(Throwable err) {
+        if (err instanceof ReplayedPairingCodeException) return ErrorConstants.CODE_REPLAYED_PAIRING_CODE;
+        if (err instanceof MethodArgumentNotValidException || err instanceof ConstraintViolationException || err instanceof HttpMessageConversionException) return ErrorConstants.CODE_INVALID_INPUT;
+        if (err instanceof RateLimitExceededException) return ErrorConstants.CODE_RATE_LIMIT_EXCEEDED;
+        if (err instanceof DataIntegrityViolationException || err instanceof ConcurrencyFailureException || err.getCause() instanceof ConcurrencyFailureException) return ErrorConstants.CODE_DATABASE_CONFLICT;
+        if (err instanceof ConflictException) return ErrorConstants.CODE_DUPLICATE_RESOURCE;
+        if (err instanceof ForbiddenException || err instanceof AccessDeniedException) return ErrorConstants.CODE_FORBIDDEN_ACCESS;
+        if (err instanceof ResourceNotFoundException) return ErrorConstants.CODE_RESOURCE_NOT_FOUND;
+        if (err instanceof BadCredentialsException) return ErrorConstants.CODE_INVALID_CREDENTIALS;
+        if (err instanceof BadRequestException) {
+            String message = StringUtils.defaultString(err.getMessage()).toLowerCase(java.util.Locale.ROOT);
+            if (message.contains("incorrect password")) return ErrorConstants.CODE_INVALID_PASSWORD;
+            if (message.contains("login or password") || message.contains("credential")) return ErrorConstants.CODE_INVALID_CREDENTIALS;
+            if (message.contains("pairing code")) return message.contains("replay") || message.contains("used") ? ErrorConstants.CODE_REPLAYED_PAIRING_CODE : ErrorConstants.CODE_EXPIRED_PAIRING_CODE;
+            if (message.contains("refresh token")) return message.contains("revoked") ? ErrorConstants.CODE_REVOKED_TOKEN : ErrorConstants.CODE_EXPIRED_TOKEN;
+            if (message.contains("inactive") || message.contains("revoked")) return ErrorConstants.CODE_INACTIVE_DEVICE;
+            return ErrorConstants.CODE_INVALID_INPUT;
+        }
+        return "INTERNAL_ERROR";
+    }
+
+    private String getRequestId(NativeWebRequest request) {
+        HttpServletRequest nativeRequest = request == null ? null : request.getNativeRequest(HttpServletRequest.class);
+        if (nativeRequest == null) return null;
+        String requestId = nativeRequest.getHeader("X-Request-Id");
+        return StringUtils.isBlank(requestId) ? null : requestId;
     }
 
     private String getCustomizedTitle(Throwable err) {
@@ -206,7 +266,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private HttpStatus getMappedStatus(Throwable err) {
         // Where we disagree with Spring defaults
         if (err instanceof AccessDeniedException) return HttpStatus.FORBIDDEN;
-        if (err instanceof ConcurrencyFailureException) return HttpStatus.CONFLICT;
+        if (err instanceof ConcurrencyFailureException || err instanceof DataIntegrityViolationException) return HttpStatus.CONFLICT;
         if (err instanceof BadCredentialsException) return HttpStatus.UNAUTHORIZED;
         if (err instanceof ConstraintViolationException) return HttpStatus.BAD_REQUEST;
         return null;

@@ -17,7 +17,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.io.Serial;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Locale;
@@ -36,7 +35,7 @@ import org.hibernate.annotations.BatchSize;
 @Table(name = "jhi_user")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class User extends AbstractAuditingEntity<Long> implements Serializable {
+public class User extends AbstractAuditingEntity<Long> {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -75,6 +74,12 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
     @NotNull
     @Column(name = "activated", nullable = false)
     private boolean activated;
+
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts;
+
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
 
     @Size(min = 2, max = 10)
     @Column(name = "lang_key", length = 10)
@@ -119,6 +124,20 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
 
     public void deactivate() {
         activated = false;
+    }
+
+    public boolean isLocked(Instant now) {
+        return lockedUntil != null && lockedUntil.isAfter(now);
+    }
+
+    public void recordFailedLogin(Instant now, int maxAttempts, Instant lockUntil) {
+        failedLoginAttempts++;
+        if (failedLoginAttempts >= maxAttempts) lockedUntil = lockUntil;
+    }
+
+    public void resetFailedLogins() {
+        failedLoginAttempts = 0;
+        lockedUntil = null;
     }
 
     public void prepareActivation(String key) {

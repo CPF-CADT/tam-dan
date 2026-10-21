@@ -55,14 +55,8 @@ SPRING_PROFILES_ACTIVE=prod java -jar target/tamdan-*.jar
 
 ## Database
 
-Spring Boot starts the PostgreSQL Docker Compose service automatically in development.
-
-Manual commands:
-
-```bash
-docker compose -f src/main/docker/postgresql.yml up -d
-docker compose -f src/main/docker/postgresql.yml down
-```
+Development uses PostgreSQL running on the local machine at `localhost:5432`.
+The expected database is `tamdan`, with username `tamdan` and an empty password.
 
 ## Test
 

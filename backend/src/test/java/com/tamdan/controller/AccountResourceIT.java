@@ -11,10 +11,11 @@ import com.tamdan.config.Constants;
 import com.tamdan.dto.request.KeyAndPasswordVM;
 import com.tamdan.dto.request.ManagedUserVM;
 import com.tamdan.dto.request.PasswordChangeDTO;
+import com.tamdan.dto.request.UpdateParentRequest;
 import com.tamdan.entities.User;
 import com.tamdan.repository.UserRepository;
+import com.tamdan.repository.FamilyMemberRepository;
 import java.time.Instant;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -35,6 +36,9 @@ class AccountResourceIT {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FamilyMemberRepository familyMemberRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -60,9 +64,14 @@ class AccountResourceIT {
 
         mockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(request)))
-            .andExpect(status().isCreated());
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.data.login").value("register-valid"))
+            .andExpect(jsonPath("$.data.email").value("register-valid@example.com"))
+            .andExpect(jsonPath("$.data.password").doesNotExist());
 
         assertThat(userRepository.findOneByLogin("register-valid")).isPresent();
+        Long parentId = userRepository.findOneByLogin("register-valid").orElseThrow().getId();
+        assertThat(familyMemberRepository.findByParentIdAndActiveTrue(parentId)).isPresent();
     }
 
     @Test
@@ -104,6 +113,37 @@ class AccountResourceIT {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.login").value("account-user"))
             .andExpect(jsonPath("$.data.email").value("account-user@example.com"));
+    }
+
+    @Test
+    @WithMockUser("update-parent")
+    void updatesAuthenticatedParentAccount() throws Exception {
+        userRepository.saveAndFlush(activeUser("update-parent", "old-parent@example.com", passwordEncoder.encode("password")));
+
+        mockMvc
+            .perform(
+                post("/api/account")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(new UpdateParentRequest("new-parent@example.com", "New", "Parent")))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.login").value("update-parent"))
+            .andExpect(jsonPath("$.data.email").value("new-parent@example.com"));
+
+        User updated = userRepository.findOneByLogin("update-parent").orElseThrow();
+        assertThat(updated.getFirstName()).isEqualTo("New");
+        assertThat(updated.getLastName()).isEqualTo("Parent");
+    }
+
+    @Test
+    void activatesParentAccount() throws Exception {
+        User user = activeUser("activation-parent", "activation-parent@example.com", passwordEncoder.encode("password"));
+        user.prepareActivation("activation-key");
+        userRepository.saveAndFlush(user);
+
+        mockMvc.perform(get("/api/activate").param("key", "activation-key")).andExpect(status().isOk());
+
+        assertThat(userRepository.findOneByLogin("activation-parent").orElseThrow().isActivated()).isTrue();
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.tamdan.aspect;
 
-import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -85,11 +84,11 @@ public class LoggingAspect {
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
         var log = logger(joinPoint);
         if (log.isDebugEnabled()) {
-            log.debug("Enter: {}() with argument[s] = {}", joinPoint.getSignature().getName(), Arrays.toString(joinPoint.getArgs()));
+            log.debug("Enter: {}()", joinPoint.getSignature().getName());
         }
         try {
             Object result = joinPoint.proceed();
-            logExit(log, joinPoint, result);
+            logExit(log, joinPoint);
             return result;
         } catch (IllegalArgumentException e) {
             logIllegalArgument(log, joinPoint);
@@ -97,33 +96,41 @@ public class LoggingAspect {
         }
     }
 
-    private void logExit(Logger log, JoinPoint joinPoint, Object result) {
+    private void logExit(Logger log, JoinPoint joinPoint) {
         if (log.isDebugEnabled()) {
-            log.debug("Exit: {}() with result = {}", joinPoint.getSignature().getName(), result);
+            log.debug("Exit: {}()", joinPoint.getSignature().getName());
         }
     }
 
     private void logIllegalArgument(Logger log, JoinPoint joinPoint) {
         if (log.isErrorEnabled()) {
-            log.error("Illegal argument: {} in {}()", Arrays.toString(joinPoint.getArgs()), joinPoint.getSignature().getName());
+            log.error("Illegal argument in {}()", joinPoint.getSignature().getName());
         }
     }
 
     private void logException(JoinPoint joinPoint, Throwable e) {
+        boolean sensitive = containsSensitiveValue(e);
         if (env.acceptsProfiles(Profiles.of(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT))) {
             logger(joinPoint).error(
                 "Exception in {}() with cause = '{}' and exception = '{}'",
                 joinPoint.getSignature().getName(),
-                e.getCause() != null ? e.getCause() : "NULL",
-                e.getMessage(),
-                e
+                sensitive ? "[REDACTED]" : (e.getCause() != null ? e.getCause() : "NULL"),
+                sensitive ? "[REDACTED]" : e.getMessage(),
+                sensitive ? null : e
             );
         } else {
             logger(joinPoint).error(
                 "Exception in {}() with cause = {}",
                 joinPoint.getSignature().getName(),
-                e.getCause() != null ? String.valueOf(e.getCause()) : "NULL"
+                sensitive ? "[REDACTED]" : (e.getCause() != null ? String.valueOf(e.getCause()) : "NULL")
             );
         }
+    }
+
+    private boolean containsSensitiveValue(Throwable exception) {
+        String message = exception.getMessage();
+        if (message == null) return false;
+        String normalized = message.toLowerCase(java.util.Locale.ROOT);
+        return normalized.contains("password") || normalized.contains("token") || normalized.contains("credential") || normalized.contains("pairing");
     }
 }

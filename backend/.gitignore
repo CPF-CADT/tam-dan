@@ -74,6 +74,9 @@ out/
 /log/
 /target/
 
+# Local developer secrets
+src/main/resources/config/application-local.yml
+
 ######################
 # Gradle
 ######################

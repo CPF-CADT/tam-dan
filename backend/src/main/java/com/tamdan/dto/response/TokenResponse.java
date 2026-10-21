@@ -1,5 +1,5 @@
 package com.tamdan.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
 
-public record TokenResponse(@JsonProperty("id_token") String idToken) {}
+public record TokenResponse(String accessToken, String refreshToken, Instant accessTokenExpiresAt, Instant refreshTokenExpiresAt) {}

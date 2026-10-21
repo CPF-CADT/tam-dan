@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261021000700" author="tamdan">
+        <sql dbms="postgresql" splitStatements="false">
+            CREATE UNIQUE INDEX ux_family_member_active_parent
+                ON family_member (parent_id)
+                WHERE active = true;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

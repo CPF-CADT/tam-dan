@@ -1,9 +1,11 @@
 package com.tamdan.controller;
 
-import com.tamdan.dto.request.LoginVM;
+import com.tamdan.dto.request.LoginRequest;
+import com.tamdan.dto.request.RefreshRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.TokenResponse;
-import com.tamdan.security.TokenService;
+import com.tamdan.security.AuthenticatedUserIdResolver;
+import com.tamdan.service.AuthenticationService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -11,10 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,19 +22,32 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthenticateController {
 
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final TokenService tokenService;
+    private final AuthenticationService authenticationService;
+    private final AuthenticatedUserIdResolver authenticatedUserIdResolver;
 
     @PostMapping(ApiPaths.AUTHENTICATE)
-    public ResponseEntity<ApiResponse<TokenResponse>> authorize(@Valid @RequestBody LoginVM request) {
-        Authentication authentication = authenticationManagerBuilder
-            .getObject()
-            .authenticate(new UsernamePasswordAuthenticationToken(request.username(), request.password()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = tokenService.createToken(authentication, request.rememberMe());
+    public ResponseEntity<ApiResponse<TokenResponse>> authorize(@Valid @RequestBody LoginRequest request) {
+        TokenResponse response = authenticationService.login(request);
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        return ResponseEntity.ok().headers(headers).body(ApiResponse.success(new TokenResponse(token)));
+        headers.setBearerAuth(response.accessToken());
+        return ResponseEntity.ok().headers(headers).body(ApiResponse.success(response));
+    }
+
+    @PostMapping(ApiPaths.AUTHENTICATE_REFRESH)
+    public ApiResponse<TokenResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ApiResponse.success(authenticationService.refresh(request));
+    }
+
+    @PostMapping(ApiPaths.AUTHENTICATE_LOGOUT)
+    public ApiResponse<Void> logout(@Valid @RequestBody RefreshRequest request) {
+        authenticationService.logout(request.refreshToken());
+        return ApiResponse.success();
+    }
+
+    @PostMapping(ApiPaths.AUTHENTICATE_LOGOUT_ALL)
+    public ApiResponse<Void> logoutAll() {
+        authenticationService.logoutAll(authenticatedUserIdResolver.requireCurrentUserId());
+        return ApiResponse.success();
     }
 
     @GetMapping(ApiPaths.AUTHENTICATE)

@@ -28,6 +28,32 @@ application:
   runtime:
     application-name: ${spring.application.name}
     server-port: ${server.port}
+  rate-limit:
+    # Buckets are stored in PostgreSQL so all application instances share limits.
+    registration:
+      limit: 5
+      window: 1h
+    login:
+      limit: 10
+      window: 1m
+    recovery:
+      limit: 5
+      window: 1h
+    activation-resend:
+      limit: 5
+      window: 1h
+    pairing-generation:
+      limit: 10
+      window: 1h
+    pairing-submission:
+      limit: 10
+      window: 10m
+    refresh:
+      limit: 20
+      window: 1m
+    pairing-max-attempts: 5
+    failed-login-max-attempts: 5
+    login-lock-duration: 15m
 
 management:
   endpoints:
@@ -97,11 +123,6 @@ management:
 spring:
   application:
     name: tamdan
-  docker:
-    compose:
-      enabled: true
-      lifecycle-management: start-only
-      file: src/main/docker/services.yml
   profiles:
     # Use dev by default. Override with SPRING_PROFILES_ACTIVE or
     # --spring.profiles.active when deploying the application.
@@ -109,6 +130,7 @@ spring:
     group:
       dev:
         - secret-samples
+        - local
         - api-docs
         # Uncomment to activate TLS for the dev profile
         #- tls

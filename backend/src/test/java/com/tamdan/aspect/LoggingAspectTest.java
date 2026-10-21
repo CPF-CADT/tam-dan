@@ -65,10 +65,7 @@ class LoggingAspectTest {
         Object result = aspect.logAround(joinPoint);
 
         assertThat(result).isEqualTo("result");
-        assertThat(messages()).containsExactly(
-            "Enter: loggedMethod() with argument[s] = [arg]",
-            "Exit: loggedMethod() with result = result"
-        );
+        assertThat(messages()).containsExactly("Enter: loggedMethod()", "Exit: loggedMethod()");
     }
 
     @Test
@@ -79,7 +76,7 @@ class LoggingAspectTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("invalid");
 
-        assertThat(messages()).contains("Illegal argument: [arg] in loggedMethod()");
+        assertThat(messages()).contains("Illegal argument in loggedMethod()");
     }
 
     @Test

@@ -3,15 +3,20 @@ package com.tamdan.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tamdan.config.Constants;
 import com.tamdan.dto.request.ManagedUserVM;
+import com.tamdan.dto.request.RegisterParentRequest;
+import com.tamdan.dto.request.UpdateParentRequest;
+import com.tamdan.dto.response.ParentAccountResponse;
 import com.tamdan.entities.Authority;
 import com.tamdan.entities.User;
 import com.tamdan.exception.BadRequestException;
 import com.tamdan.exception.ConflictException;
+import com.tamdan.mail.MailService;
 import com.tamdan.mapper.UserMapper;
 import com.tamdan.repository.AuthorityRepository;
 import com.tamdan.repository.UserRepository;
@@ -31,12 +36,13 @@ class UserServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private AuthorityRepository authorityRepository;
+    @Mock private MailService mailService;
 
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, passwordEncoder, authorityRepository, new UserMapper());
+        userService = new UserService(userRepository, passwordEncoder, authorityRepository, new UserMapper(), mailService);
     }
 
     @Test
@@ -50,6 +56,23 @@ class UserServiceTest {
         assertThat(registered.getEmail()).isEqualTo("user@example.com");
         verify(userRepository).findOneByLogin("mixedcase");
         verify(userRepository).findOneByEmailIgnoreCase("user@example.com");
+    }
+
+    @Test
+    void registersParentWithNormalizedIdentityAndHashedPassword() {
+        RegisterParentRequest request = new RegisterParentRequest(
+            "  ParentUser  ", "  Parent@Example.COM  ", "password", "First", "Last"
+        );
+        prepareSuccessfulRegistration();
+
+        ParentAccountResponse response = userService.register(request);
+
+        assertThat(response.login()).isEqualTo("parentuser");
+        assertThat(response.email()).isEqualTo("parent@example.com");
+        assertThat(response.activated()).isFalse();
+        assertThat(response.authorities()).containsExactly(AuthoritiesConstants.USER);
+        verify(passwordEncoder).encode("password");
+        verify(mailService).sendActivationEmail(any(User.class));
     }
 
     @Test
@@ -82,6 +105,34 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.changePassword(1L, "wrong-password", "new-password"))
             .isInstanceOf(BadRequestException.class)
             .hasMessage("Incorrect password");
+    }
+
+    @Test
+    void updatesOnlyTheAuthenticatedParent() {
+        User user = User.builder()
+            .id(1L).login("parent").email("old@example.com").firstName("Old").lastName("Name")
+            .activated(true).langKey(Constants.DEFAULT_LANGUAGE).build();
+        when(userRepository.findOneWithAuthoritiesById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.saveAndFlush(user)).thenReturn(user);
+
+        ParentAccountResponse response = userService.update(1L, new UpdateParentRequest(" NEW@Example.com ", "New", "Parent"));
+
+        assertThat(response.email()).isEqualTo("new@example.com");
+        assertThat(user.getFirstName()).isEqualTo("New");
+        verify(userRepository).findOneWithAuthoritiesById(1L);
+        verify(userRepository, never()).findById(any());
+    }
+
+    @Test
+    void activatesAccountByActivationKey() {
+        User user = User.builder().login("parent").activated(false).build();
+        user.prepareActivation("activation-key");
+        when(userRepository.findOneByActivationKey("activation-key")).thenReturn(Optional.of(user));
+
+        userService.activate("activation-key");
+
+        assertThat(user.isActivated()).isTrue();
+        assertThat(user.getActivationKey()).isNull();
     }
 
     private void prepareSuccessfulRegistration() {

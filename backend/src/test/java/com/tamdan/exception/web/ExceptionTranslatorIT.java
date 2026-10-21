@@ -31,7 +31,8 @@ class ExceptionTranslatorIT {
             .perform(get("/api/exception-translator-test/concurrency-failure"))
             .andExpect(status().isConflict())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.message").value(ErrorConstants.ERR_CONCURRENCY_FAILURE));
+            .andExpect(jsonPath("$.message").value(ErrorConstants.ERR_CONCURRENCY_FAILURE))
+            .andExpect(jsonPath("$.code").value(ErrorConstants.CODE_DATABASE_CONFLICT));
     }
 
     @Test
@@ -41,6 +42,7 @@ class ExceptionTranslatorIT {
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.message").value(ErrorConstants.ERR_VALIDATION))
+            .andExpect(jsonPath("$.code").value(ErrorConstants.CODE_INVALID_INPUT))
             .andExpect(jsonPath("$.fieldErrors.[0].objectName").value("test"))
             .andExpect(jsonPath("$.fieldErrors.[0].field").value("test"))
             .andExpect(jsonPath("$.fieldErrors.[0].message").value("must not be null"));
@@ -82,6 +84,7 @@ class ExceptionTranslatorIT {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.message").value("error.http.401"))
             .andExpect(jsonPath("$.path").value("/api/exception-translator-test/unauthorized"))
+            .andExpect(jsonPath("$.code").value(ErrorConstants.CODE_INVALID_CREDENTIALS))
             .andExpect(jsonPath("$.detail").value("test authentication failed!"));
     }
 

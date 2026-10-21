@@ -3,6 +3,7 @@ package com.tamdan;
 import com.tamdan.config.ApplicationProperties;
 import com.tamdan.config.CRLFLogConverter;
 import com.tamdan.config.RuntimeConfigurationProperties;
+import com.tamdan.config.RateLimitProperties;
 import jakarta.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -22,7 +23,7 @@ import tech.jhipster.config.DefaultProfileUtil;
 import tech.jhipster.config.JHipsterConstants;
 
 @SpringBootApplication()
-@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, RuntimeConfigurationProperties.class })
+@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, RuntimeConfigurationProperties.class, RateLimitProperties.class })
 @RequiredArgsConstructor
 public class TamdanApp {
 

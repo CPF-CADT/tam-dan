@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261021000100" author="tamdan">
+        <createTable tableName="parent_session">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="parent_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refresh_token_hash" type="varchar(64)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_parent_session_refresh_hash"/>
+            </column>
+            <column name="issued_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revoked_at" type="timestamp"/>
+            <column name="replaced_by_session_id" type="bigint"/>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="parent_session" baseColumnNames="parent_id"
+                                 referencedTableName="jhi_user" referencedColumnNames="id"
+                                 constraintName="fk_parent_session_parent"/>
+    </changeSet>
+</databaseChangeLog>

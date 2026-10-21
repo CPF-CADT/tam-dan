@@ -41,4 +41,8 @@ public class TokenService {
         JwsHeader header = JwsHeader.with(JWT_ALGORITHM).build();
         return jwtEncoder.encode(JwtEncoderParameters.from(header, claims.build())).getTokenValue();
     }
+
+    public long accessTokenValiditySeconds() {
+        return properties.getSecurity().getAuthentication().getJwt().getTokenValidityInSeconds();
+    }
 }

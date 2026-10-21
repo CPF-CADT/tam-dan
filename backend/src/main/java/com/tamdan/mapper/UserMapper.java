@@ -1,12 +1,14 @@
 package com.tamdan.mapper;
 
+import com.tamdan.config.Constants;
 import com.tamdan.dto.request.AdminUserRequest;
 import com.tamdan.dto.request.ManagedUserVM;
+import com.tamdan.dto.request.RegisterParentRequest;
 import com.tamdan.dto.response.AdminUserDTO;
+import com.tamdan.dto.response.ParentAccountResponse;
 import com.tamdan.dto.response.UserDTO;
 import com.tamdan.entities.Authority;
 import com.tamdan.entities.User;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +28,13 @@ public class UserMapper {
         );
     }
 
+    public ParentAccountResponse toParentResponse(User user) {
+        return new ParentAccountResponse(
+            user.getId(), user.getLogin(), user.getEmail(), user.isActivated(),
+            user.getAuthorities().stream().map(Authority::getName).collect(Collectors.toUnmodifiableSet())
+        );
+    }
+
     public User toEntity(AdminUserRequest request, String encodedPassword) {
         return User.builder()
             .id(request.id()).login(request.login()).firstName(request.firstName()).lastName(request.lastName())
@@ -37,6 +46,12 @@ public class UserMapper {
         return User.builder()
             .login(request.login()).firstName(request.firstName()).lastName(request.lastName()).email(request.email())
             .imageUrl(request.imageUrl()).langKey(request.langKey()).password(encodedPassword).build();
+    }
+
+    public User toEntity(RegisterParentRequest request, String encodedPassword) {
+        return User.builder()
+            .login(request.login()).firstName(request.firstName()).lastName(request.lastName()).email(request.email())
+            .langKey(Constants.DEFAULT_LANGUAGE).password(encodedPassword).build();
     }
 
 }

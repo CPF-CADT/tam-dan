@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261021000900" author="tamdan">
+        <addColumn tableName="jhi_user">
+            <column name="failed_login_attempts" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_until" type="timestamp"/>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="parent_session" baseColumnNames="replaced_by_session_id"
+                                 referencedTableName="parent_session" referencedColumnNames="id"
+                                 constraintName="fk_parent_session_replacement"/>
+        <addForeignKeyConstraint baseTableName="device_credential" baseColumnNames="replaced_by_credential_id"
+                                 referencedTableName="device_credential" referencedColumnNames="id"
+                                 constraintName="fk_device_credential_replacement"/>
+        <addForeignKeyConstraint baseTableName="security_audit_event" baseColumnNames="family_id"
+                                 referencedTableName="family" referencedColumnNames="id"
+                                 constraintName="fk_security_audit_family"/>
+        <addUniqueConstraint tableName="child_device" columnNames="device_identifier_hash"
+                             constraintName="ux_child_device_identifier_hash"/>
+        <sql dbms="postgresql" splitStatements="true">
+            ALTER TABLE parent_session ALTER COLUMN issued_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE parent_session ALTER COLUMN expires_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE parent_session ALTER COLUMN revoked_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE parent_session ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE family ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE family ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE family_member ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE child_profile ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE child_profile ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE pairing_code ALTER COLUMN expires_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE pairing_code ALTER COLUMN used_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE pairing_code ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE child_device ALTER COLUMN revoked_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE child_device ALTER COLUMN last_seen_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE child_device ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE child_device ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE device_credential ALTER COLUMN issued_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE device_credential ALTER COLUMN expires_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE device_credential ALTER COLUMN revoked_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE consent_record ALTER COLUMN acknowledged_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE consent_record ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE security_audit_event ALTER COLUMN occurred_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE rate_limit_bucket ALTER COLUMN window_started_at TYPE TIMESTAMP WITH TIME ZONE;
+
+            CREATE INDEX ix_family_member_active_parent_family ON family_member (parent_id, family_id) WHERE active = true;
+            CREATE INDEX ix_child_profile_family ON child_profile (family_id, id);
+            CREATE INDEX ix_pairing_code_active_child_expiry ON pairing_code (child_profile_id, expires_at) WHERE used_at IS NULL;
+            CREATE INDEX ix_device_credential_active_hash_expiry ON device_credential (credential_hash, expires_at) WHERE revoked_at IS NULL;
+            CREATE INDEX ix_security_audit_family_time ON security_audit_event (family_id, occurred_at);
+        </sql>
+        <rollback>
+            <sql dbms="postgresql" splitStatements="true">
+                DROP INDEX IF EXISTS ix_security_audit_family_time;
+                DROP INDEX IF EXISTS ix_device_credential_active_hash_expiry;
+                DROP INDEX IF EXISTS ix_pairing_code_active_child_expiry;
+                DROP INDEX IF EXISTS ix_child_profile_family;
+                DROP INDEX IF EXISTS ix_family_member_active_parent_family;
+            </sql>
+            <dropForeignKeyConstraint baseTableName="device_credential" constraintName="fk_device_credential_replacement"/>
+            <dropForeignKeyConstraint baseTableName="security_audit_event" constraintName="fk_security_audit_family"/>
+            <dropForeignKeyConstraint baseTableName="parent_session" constraintName="fk_parent_session_replacement"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

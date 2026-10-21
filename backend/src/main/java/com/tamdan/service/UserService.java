@@ -4,7 +4,10 @@ import com.tamdan.config.Constants;
 import com.tamdan.dto.request.AccountUpdateRequest;
 import com.tamdan.dto.request.AdminUserRequest;
 import com.tamdan.dto.request.ManagedUserVM;
+import com.tamdan.dto.request.RegisterParentRequest;
+import com.tamdan.dto.request.UpdateParentRequest;
 import com.tamdan.dto.response.AdminUserDTO;
+import com.tamdan.dto.response.ParentAccountResponse;
 import com.tamdan.dto.response.UserDTO;
 import com.tamdan.entities.Authority;
 import com.tamdan.entities.User;
@@ -12,6 +15,7 @@ import com.tamdan.exception.BadRequestException;
 import com.tamdan.exception.ConflictException;
 import com.tamdan.exception.ResourceNotFoundException;
 import com.tamdan.mapper.UserMapper;
+import com.tamdan.mail.MailService;
 import com.tamdan.repository.AuthorityRepository;
 import com.tamdan.repository.UserRepository;
 import com.tamdan.security.AuthoritiesConstants;
@@ -45,6 +49,79 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthorityRepository authorityRepository;
     private final UserMapper userMapper;
+    private final MailService mailService;
+    private final FamilyService familyService;
+    private final AuditService auditService;
+    private final RateLimitService rateLimitService;
+
+    public UserService(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder,
+        AuthorityRepository authorityRepository,
+        UserMapper userMapper,
+        MailService mailService
+    ) {
+        this(userRepository, passwordEncoder, authorityRepository, userMapper, mailService, null, null, null);
+    }
+
+    @Transactional
+    public ParentAccountResponse register(RegisterParentRequest request) {
+        String login = normalizeLogin(request.login());
+        String email = normalizeEmail(request.email());
+        if (rateLimitService != null) rateLimitService.check(RateLimitService.Operation.REGISTRATION, login);
+        try {
+            ensureRegistrationIdentityAvailable(login, email);
+        } catch (ConflictException exception) {
+            if (auditService != null) auditService.recordFailure(new com.tamdan.dto.request.AuditCommand("PARENT", null, null, "registration", "PARENT", null, "FAILURE", null, null, null, java.util.Map.of()));
+            throw exception;
+        }
+
+        User user = userMapper.toEntity(
+            new RegisterParentRequest(login, email, request.password(), request.firstName(), request.lastName()),
+            passwordEncoder.encode(request.password())
+        );
+        user.prepareActivation(RandomUtil.generateActivationKey());
+        user.replaceAuthorities(Set.of(requireAuthority(AuthoritiesConstants.USER)));
+        User savedUser = saveWithConflictTranslation(user);
+        if (familyService != null) familyService.createForParent(savedUser.getId());
+        mailService.sendActivationEmail(savedUser);
+        if (auditService != null) auditService.record(new com.tamdan.dto.request.AuditCommand("PARENT", savedUser.getId(), null, "registration", "PARENT", savedUser.getId(), "SUCCESS", null, null, null, java.util.Map.of()));
+        return userMapper.toParentResponse(savedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public ParentAccountResponse getCurrent(Long authenticatedParentId) {
+        return userMapper.toParentResponse(requireUserWithAuthorities(authenticatedParentId));
+    }
+
+    @Transactional
+    public ParentAccountResponse update(Long authenticatedParentId, UpdateParentRequest request) {
+        User user = requireUserWithAuthorities(authenticatedParentId);
+        String email = normalizeEmail(request.email());
+        ensureEmailAvailable(email, authenticatedParentId);
+        user.updateProfile(request.firstName(), request.lastName(), email, user.getLangKey(), user.getImageUrl());
+        return userMapper.toParentResponse(saveWithConflictTranslation(user));
+    }
+
+    @Transactional
+    public void activate(String activationKey) {
+        User activated = activateRegistration(activationKey).orElse(null);
+        if (activated != null) {
+            if (auditService != null) auditService.record(new com.tamdan.dto.request.AuditCommand("PARENT", activated.getId(), null, "activation", "PARENT", activated.getId(), "SUCCESS", null, null, null, java.util.Map.of()));
+            return;
+        }
+        if (auditService != null) auditService.recordFailure(new com.tamdan.dto.request.AuditCommand("PARENT", null, null, "activation", "PARENT", null, "FAILURE", null, null, null, java.util.Map.of()));
+        throw new ResourceNotFoundException("Activation key was not found");
+    }
+
+    @Transactional
+    public void requestActivationResend(String email) {
+        if (rateLimitService != null) rateLimitService.check(RateLimitService.Operation.ACTIVATION_RESEND, normalizeEmail(email));
+        userRepository.findOneByEmailIgnoreCase(normalizeEmail(email)).filter(user -> !user.isActivated()).ifPresent(user -> {
+            user.prepareActivation(RandomUtil.generateActivationKey());
+            mailService.sendActivationEmail(user);
+        });
+    }
 
     @Transactional
     public Optional<User> activateRegistration(String key) {
@@ -56,21 +133,27 @@ public class UserService {
 
     @Transactional
     public Optional<User> completePasswordReset(String newPassword, String key) {
-        return userRepository
+        Optional<User> result = userRepository
             .findOneByResetKey(key)
             .filter(user -> user.getResetDate() != null && user.getResetDate().isAfter(Instant.now().minus(1, ChronoUnit.DAYS)))
             .map(user -> {
                 user.completePasswordReset(passwordEncoder.encode(newPassword));
+                if (auditService != null) auditService.record(new com.tamdan.dto.request.AuditCommand("PARENT", null, null, "recovery-completion", "PARENT", null, "SUCCESS", null, null, null, java.util.Map.of()));
                 return user;
             });
+        if (result.isEmpty() && auditService != null) auditService.recordFailure(new com.tamdan.dto.request.AuditCommand("PARENT", null, null, "recovery-completion", "PARENT", null, "FAILURE", null, null, null, java.util.Map.of()));
+        return result;
     }
 
     @Transactional
     public Optional<User> requestPasswordReset(String email) {
-        return userRepository.findOneByEmailIgnoreCase(normalizeEmail(email)).filter(User::isActivated).map(user -> {
+        if (rateLimitService != null) rateLimitService.check(RateLimitService.Operation.RECOVERY, normalizeEmail(email));
+        Optional<User> result = userRepository.findOneByEmailIgnoreCase(normalizeEmail(email)).filter(User::isActivated).map(user -> {
             user.preparePasswordReset(RandomUtil.generateResetKey(), Instant.now());
             return user;
         });
+        if (auditService != null) auditService.record(new com.tamdan.dto.request.AuditCommand("PARENT", null, null, "recovery-request", "PARENT", null, "ACCEPTED", null, null, null, java.util.Map.of()));
+        return result;
     }
 
     @Transactional
@@ -127,9 +210,7 @@ public class UserService {
     public void updateCurrentUser(long userId, AccountUpdateRequest request) {
         User user = requireUser(userId);
         String email = normalizeEmail(request.email());
-        userRepository.findOneByEmailIgnoreCase(email).filter(existing -> !existing.getId().equals(userId)).ifPresent(existing -> {
-            throw new ConflictException("Email is already in use");
-        });
+        ensureEmailAvailable(email, userId);
         user.updateProfile(request.firstName(), request.lastName(), email, request.langKey(), request.imageUrl());
         saveWithConflictTranslation(user);
     }
@@ -190,10 +271,10 @@ public class UserService {
 
     private void ensureRegistrationIdentityAvailable(String login, String email) {
         userRepository.findOneByLogin(login).ifPresent(existing -> {
-            if (!removeNonActivatedUser(existing)) throw new ConflictException("Login name is already in use");
+            throw new ConflictException("Login name is already in use");
         });
         userRepository.findOneByEmailIgnoreCase(email).ifPresent(existing -> {
-            if (!removeNonActivatedUser(existing)) throw new ConflictException("Email is already in use");
+            throw new ConflictException("Email is already in use");
         });
     }
 
@@ -208,11 +289,10 @@ public class UserService {
         }
     }
 
-    private boolean removeNonActivatedUser(User user) {
-        if (user.isActivated()) return false;
-        userRepository.delete(user);
-        userRepository.flush();
-        return true;
+    private void ensureEmailAvailable(String email, Long excludedUserId) {
+        userRepository.findOneByEmailIgnoreCase(email).filter(existing -> !existing.getId().equals(excludedUserId)).ifPresent(existing -> {
+            throw new ConflictException("Email is already in use");
+        });
     }
 
     private User requireUser(long id) {

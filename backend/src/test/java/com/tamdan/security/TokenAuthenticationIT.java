@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.http.MediaType;
 
 @AutoConfigureMockMvc
 @AuthenticationIntegrationTest
@@ -39,6 +40,37 @@ class TokenAuthenticationIT {
     @Test
     void testReturnFalseWhenJWTisExpired() throws Exception {
         expectUnauthorized(createExpiredToken(jwtKey));
+    }
+
+    @Test
+    void deviceCredentialCannotAccessParentRoute() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.get("/api/family/current").header("X-Device-Credential", "invalid-device-credential"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deviceCredentialCannotAccessParentSessionRoute() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.post("/api/authenticate/logout").header("X-Device-Credential", "invalid-device-credential"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void parentJwtCannotAccessDeviceOnlyRoute() throws Exception {
+        mvc.perform(
+            MockMvcRequestBuilders.post("/api/consent/device")
+                .header(AUTHORIZATION, BEARER + createValidToken(jwtKey))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"permissionState\":\"ALLOW\"}")
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void conflictingParentAndDeviceCredentialsAreRejected() throws Exception {
+        mvc.perform(
+            MockMvcRequestBuilders.get("/api/authenticate")
+                .header(AUTHORIZATION, BEARER + createValidToken(jwtKey))
+                .header("X-Device-Credential", "invalid-device-credential")
+        ).andExpect(status().isUnauthorized());
     }
 
     private void expectOk(String token) throws Exception {

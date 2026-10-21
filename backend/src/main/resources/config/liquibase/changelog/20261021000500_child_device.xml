@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261021000500" author="tamdan">
+        <createTable tableName="child_device">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="child_profile_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_identifier_hash" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="platform" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="app_version" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="capabilities_json" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revoked_at" type="timestamp"/>
+            <column name="last_seen_at" type="timestamp"/>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="device_credential">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="child_device_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="credential_hash" type="varchar(64)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_device_credential_hash"/>
+            </column>
+            <column name="issued_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revoked_at" type="timestamp"/>
+            <column name="replaced_by_credential_id" type="bigint"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="child_device" baseColumnNames="child_profile_id"
+                                 referencedTableName="child_profile" referencedColumnNames="id"
+                                 constraintName="fk_child_device_child"/>
+        <addForeignKeyConstraint baseTableName="device_credential" baseColumnNames="child_device_id"
+                                 referencedTableName="child_device" referencedColumnNames="id"
+                                 constraintName="fk_device_credential_device"/>
+    </changeSet>
+</databaseChangeLog>

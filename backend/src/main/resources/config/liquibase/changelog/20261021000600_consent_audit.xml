@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261021000600" author="tamdan">
+        <createTable tableName="consent_record">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="family_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="child_profile_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="document_version" type="varchar(50)"><constraints nullable="false"/></column>
+            <column name="actor_type" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="actor_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="acknowledged_at" type="timestamp"><constraints nullable="false"/></column>
+            <column name="permission_state" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="created_at" type="timestamp"><constraints nullable="false"/></column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="consent_record" baseColumnNames="family_id" referencedTableName="family" referencedColumnNames="id" constraintName="fk_consent_family"/>
+        <addForeignKeyConstraint baseTableName="consent_record" baseColumnNames="child_profile_id" referencedTableName="child_profile" referencedColumnNames="id" constraintName="fk_consent_child"/>
+
+        <createTable tableName="security_audit_event">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="actor_type" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="actor_id" type="bigint"/>
+            <column name="family_id" type="bigint"/>
+            <column name="action" type="varchar(50)"><constraints nullable="false"/></column>
+            <column name="resource_type" type="varchar(50)"><constraints nullable="false"/></column>
+            <column name="resource_id" type="bigint"/>
+            <column name="result" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="request_id" type="varchar(100)"/>
+            <column name="ip_address_hash" type="varchar(64)"/>
+            <column name="user_agent_hash" type="varchar(64)"/>
+            <column name="safe_metadata_json" type="text"><constraints nullable="false"/></column>
+            <column name="occurred_at" type="timestamp"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
