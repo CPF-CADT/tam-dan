@@ -7,6 +7,7 @@
 - Owner: coordinator
 - Applies to: final implementation revisions and future PRD 7 work
 - Merge/deployment: blocked
+- Detailed closure PRD: [`tasks/08-security-evidence-completion/README.md`](../08-security-evidence-completion/README.md)
 
 ## Purpose
 
