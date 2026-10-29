@@ -27,7 +27,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -40,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.jhipster.security.RandomUtil;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
@@ -53,6 +52,27 @@ public class UserService {
     private final FamilyService familyService;
     private final AuditService auditService;
     private final RateLimitService rateLimitService;
+
+    @Autowired
+    public UserService(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder,
+        AuthorityRepository authorityRepository,
+        UserMapper userMapper,
+        MailService mailService,
+        FamilyService familyService,
+        AuditService auditService,
+        RateLimitService rateLimitService
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.authorityRepository = authorityRepository;
+        this.userMapper = userMapper;
+        this.mailService = mailService;
+        this.familyService = familyService;
+        this.auditService = auditService;
+        this.rateLimitService = rateLimitService;
+    }
 
     public UserService(
         UserRepository userRepository,
