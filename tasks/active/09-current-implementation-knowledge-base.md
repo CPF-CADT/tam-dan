@@ -85,7 +85,7 @@ Backend test evidence: `cb13b55`, based on backend implementation `9795ee3`.
 - Mobile runtime commits: `3c60255` and `c4e69e8`.
 - OWASP register: [native-runtime-owasp-risk-register.md](native-runtime-owasp-risk-register.md).
 
-Remaining security evidence: dependency audit data/API configuration, secret-scan output, and final production configuration review.
+Remaining security evidence: a vulnerability scan with NVD data/API configuration and final production configuration review. Maven dependency inventory passed, and the fallback repository secret scan returned no matches on backend `ca17cde`.
 
 ## Known blockers
 

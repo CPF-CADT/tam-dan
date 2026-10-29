@@ -21,15 +21,17 @@ Disposition: `needs-fix` / security evidence remains incomplete. Feature and nat
 | Android unit tests | `./gradlew :app:testDebugUnitTest` | Exit 0; no Android unit sources. |
 | Native PostgreSQL | `pg_isready -h localhost -p 5432 -U tamdan` | Exit 0; accepting connections. |
 | Android device | `adb devices -l` | Exit 0; `emulator-5554 device`. |
-| Dependency audit | `./mvnw org.owasp:dependency-check-maven:check -DskipTests -DfailBuildOnCVSS=0` | Exit 1; NVD update failed because API key length was 0; no vulnerability result claimed. |
+| Dependency inventory | `./mvnw dependency:tree -DoutputFile=/tmp/tamdan-dependency-tree.txt` | Exit 0; dependency inventory written. |
+| Vulnerability audit | `./mvnw org.owasp:dependency-check-maven:check -DskipTests -DfailBuildOnCVSS=0` | Exit 1; NVD update failed because API key length was 0; no vulnerability result claimed. |
+| Secret fallback scan | `rg -n -i 'password:[[:space:]]+[^$#\"]|base64-secret:[[:space:]]+[^$#\"]|BEGIN (RSA|EC|OPENSSH) PRIVATE KEY|AKIA[0-9A-Z]{16}' src/main/resources src/test/resources` | Exit 0 with no matches on backend `ca17cde`. |
 | Dedicated scanners | `command -v gitleaks trufflehog semgrep osv-scanner` | Unavailable; fallback repository scans used. |
 
 ## Risk register
 
 | ID / OWASP | Severity | Evidence | Owner | Status / remediation |
 |---|---|---|---|---|
-| R-01 / A06 Vulnerable Components | High | Dependency-Check could not update NVD data because the API key was missing; dedicated scanners were unavailable. | Security/release | **Blocked evidence**. Configure NVD API/cache and rerun dependency audits. |
-| R-02 / A02 Cryptographic Failures | Medium | Runtime sample credentials were replaced with environment references in `ca17cde`; secret-scan output is still required. | Backend/security | **Mitigated in code; scan pending**. Confirm no active credential values remain. |
+| R-01 / A06 Vulnerable Components | High | Dependency inventory passed, but Dependency-Check could not update NVD data because the API key was missing; dedicated scanners were unavailable. | Security/release | **Blocked evidence**. Configure NVD API/cache and rerun vulnerability audits. |
+| R-02 / A02 Cryptographic Failures | Medium | Runtime sample credentials were replaced with environment references in `ca17cde`; fallback repository scan produced no credential matches. | Backend/security | **Mitigated in code; dedicated scanner pending**. |
 | R-03 / A09 Logging and Monitoring | Medium | Structured redaction for tokens, credentials, headers, bodies, JWTs, and sensitive map values was added with focused tests. | Backend/security | **Mitigated in code; operational review pending**. Retain redacted-log evidence. |
 | R-04 / A01 Access Control, A03 Injection, A07 Authentication | High | Native PostgreSQL verification passed: 75 unit tests and 110 integration tests, exit 0, log `/tmp/tamdan-verify-final-rerun.log`. | Backend testing | **Verified for native runtime**. Continue regression coverage on future API changes. |
 | R-05 / A02/A04 Mobile native security | High | Emulator `emulator-5554` passed Flutter integration, Android build/compile, secure-storage compatibility, and unsupported-state checks. | Mobile/Android testing | **Verified for current runtime evidence**. Repeat on a physical device before release if required. |
@@ -42,7 +44,7 @@ Disposition: `needs-fix` / security evidence remains incomplete. Feature and nat
 - A03: validation, parameterized persistence, and native integration evidence passed.
 - A04: stale/partial/unsupported states and emulator capability behavior are evidenced.
 - A05: sample profile activation and secret configuration were hardened; production review remains.
-- A06: dependency audit blocked by NVD API-key/data-update failure.
+- A06: dependency inventory passed; vulnerability audit blocked by NVD API-key/data-update failure.
 - A07: auth/session/revocation code and native integration evidence passed.
 - A08: OpenAPI `v1.1.0` and controller drift validation passed on `ca17cde`.
 - A09: redaction tests passed; operational log review remains.
