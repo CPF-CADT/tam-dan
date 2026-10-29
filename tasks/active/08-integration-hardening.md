@@ -30,7 +30,8 @@
 ## Coordinator checklist
 
 - [x] Approve this PRD requirements and feature-first scope.
-- [ ] Approve corrected OpenAPI route, payload, auth-header, and ID representations.
+- [x] Approve corrected OpenAPI route, payload, auth-header, and ID representations.
+- [ ] Migrate backend controllers to `/api/v1` and add contract-drift tests.
 - [ ] Dispatch isolated implementation and audit branches.
 - [ ] Collect actual test commands and logs.
 - [ ] Return failures to the responsible developer.

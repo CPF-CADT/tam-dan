@@ -43,10 +43,11 @@ These approved defaults unblock implementation while preserving the PRD rules. T
 
 ## Approval checklist
 
-- [ ] Product accepts `/api/v1` URL versioning.
-- [ ] Product accepts the status enums and `UNKNOWN` behavior.
-- [ ] Product accepts the Flutter channel name and method list.
-- [ ] Backend accepts in-process Identity-to-Safety v1.
+- [x] Product accepts `/api/v1` URL versioning.
+- [x] Product accepts the status enums and `UNKNOWN` behavior.
+- [x] Product accepts the Flutter channel name and method list.
+- [x] Backend accepts in-process Identity-to-Safety v1.
 - [ ] Android support/version/vendor matrix is recorded.
 - [ ] Schedule, timezone/DST, policy conflict, retention, notification, and reauthentication rules are recorded.
-- [ ] OpenAPI and companion contracts are generated and approved.
+- [x] OpenAPI v1.1.0 proposal is corrected for backend field names, Long IDs, device-header authentication, validation bounds, and planned endpoint markers.
+- [ ] Backend route implementation is migrated to the approved `/api/v1` contract.
