@@ -90,7 +90,7 @@ public class ConsentService {
     }
 
     @Transactional
-    public void confirmDisclosure(Long deviceId, String version) {
+    public void confirmDisclosure(Long deviceId, String version, Instant confirmedAt) {
         ChildDevice device = childDeviceRepository.findById(deviceId).orElseThrow(() -> new ResourceNotFoundException("Device was not found"));
         if (!Boolean.TRUE.equals(device.getActive()) || device.getRevokedAt() != null || !Boolean.TRUE.equals(device.getChildProfile().getActive())) {
             throw new ResourceNotFoundException("Active device was not found");
@@ -99,7 +99,7 @@ public class ConsentService {
             device.getChildProfile().getId(), device.getChildProfile().getFamily().getId()
         ).filter(candidate -> candidate.getDocumentVersion().equals(version.trim())).orElseThrow(() ->
             new ResourceNotFoundException("Consent version was not found"));
-        record.confirmByDevice();
+        record.confirmByDevice(confirmedAt);
         if (auditService != null) auditService.record(new com.tamdan.dto.request.AuditCommand("DEVICE", deviceId, device.getChildProfile().getFamily().getId(), "consent-disclosure-confirmation", "CHILD", device.getChildProfile().getId(), "SUCCESS", null, null, null, java.util.Map.of()));
     }
 

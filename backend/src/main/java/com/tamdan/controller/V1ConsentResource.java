@@ -40,7 +40,7 @@ public class V1ConsentResource {
 
     @PostMapping("/devices/me/consent")
     public ResponseEntity<Void> confirm(@Valid @RequestBody ConsentDisclosureConfirmation request) {
-        consentService.confirmDisclosure(authenticatedDeviceIdResolver.requireAuthenticatedDeviceId(), request.version());
+        consentService.confirmDisclosure(authenticatedDeviceIdResolver.requireAuthenticatedDeviceId(), request.version(), request.confirmedAt());
         return ResponseEntity.noContent().build();
     }
 }
