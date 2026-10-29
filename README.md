@@ -212,6 +212,12 @@ Detailed PRDs are available in the [`tasks/`](tasks/README.md) folder.
 
 The two backend tasks can be developed as separate modules inside one Spring Boot application.
 
+## 6. Integration Hardening and Security Gate
+
+Before any merge or deployment, the seven blockers found by Integration Review must be resolved under the [Integration Hardening and OWASP Security Remediation PRD](tasks/06-integration-hardening-security/README.md). This gate covers auth/API contract alignment, secure storage, Android enforcement truthfulness, ID and DTO consistency, usage-report freshness, test-environment evidence, and OWASP Top 10:2021 controls.
+
+Backend, Flutter, Android, security, and testing work is isolated into dedicated Git branches. Testing agents return failed tasks to the responsible developer with the exact command and logs. Integration Review is the final approval authority; unsupported device capabilities and unavailable environments are recorded as blockers, never treated as passing evidence.
+
 ## 5. Machine-Learning Opportunities
 
 Machine-learning development is managed separately from the five software tasks.
