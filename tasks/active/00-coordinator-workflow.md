@@ -26,6 +26,8 @@ Manage the Tam Dan development tasks across isolated role branches. Do not imple
 
 Planning and UI Design completed read-only review. Their results are recorded in `01-planning-result.md` and `02-ui-design-result.md`.
 
+The full implementation audit is recorded in `03-implementation-audit.md`. Contract defaults are proposed in `04-contract-decisions.md`.
+
 No implementation agent may start until the outstanding approval items in those results are resolved.
 
 ## Required order
