@@ -7,7 +7,7 @@
 - Requirements approval: Figma prototype reviewed; product requirements and API contract remain required gates
 - OpenAPI approval: `pending`
 - Figma/design approval: `ready-for-planning`; implementation handoff still required
-- Integration hardening PRD: `planned`; OWASP security gate required
+- Integration hardening PRD: `requirements-approved`; feature-first implementation scope approved; OWASP security gate remains required
 
 ## Objective
 
@@ -33,7 +33,7 @@ No implementation agent may start until the outstanding approval items in those 
 
 Implementation waves have run, but Integration Review still rejects merge. Remaining findings are recorded in the latest review: auth route mismatch, unregistered secure-storage channel, unsupported native enforcement, contract ID-type mismatch, entity leakage, and incomplete report semantics. No merge or deployment is allowed.
 
-The complete remediation plan is recorded in `tasks/06-integration-hardening-security/README.md` and is tracked by `tasks/active/08-integration-hardening.md`. OWASP Top 10:2021 controls are mandatory for every changed boundary.
+The complete remediation plan is recorded in `tasks/06-integration-hardening-security/README.md` and is tracked by `tasks/active/08-integration-hardening.md`. Requirements are approved for feature-first implementation. OWASP Top 10:2021 controls are mandatory for every changed boundary, while broad scanner and environment work remains in the fix/verification track.
 
 ## Required order
 

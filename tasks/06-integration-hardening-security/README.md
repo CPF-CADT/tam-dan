@@ -2,7 +2,7 @@
 
 ## Status
 
-- State: `planned`
+- State: `requirements-approved`
 - Priority: `P0 — merge blocker`
 - Owner: coordinator
 - Gate: approved requirements and versioned OpenAPI contract are required before implementation
@@ -12,7 +12,19 @@
 
 The current integration review rejected merge. The product cannot be considered release-ready until the seven blockers below are resolved and verified with automated, device, and integration evidence.
 
-This PRD is a remediation plan. It does not add new product features.
+This PRD is a remediation plan. It does not add unrelated product features, but it does include the missing feature logic needed for ownership-scoped children, devices, activity, reports, alerts, and policies.
+
+## Approved implementation focus
+
+The next development wave is feature-first:
+
+1. Implement the core parent/device/child logic and data ownership boundaries.
+2. Implement correct validation, authorization, idempotency, and injection-safe persistence/query behavior.
+3. Implement report, alert, and policy state transitions with truthful data-quality states.
+4. Keep security fixes directly attached to the feature boundary they protect.
+5. Defer broad security-hardening work such as scanner automation, dashboards, signing infrastructure, and full device-lab setup to the fix and verification track.
+
+This approval does not approve insecure shortcuts: credentials must still use secure storage, unauthorized ownership access must fail, untrusted input must be validated, and unsupported enforcement must not be reported as active.
 
 ## Goals and non-goals
 
@@ -149,7 +161,7 @@ Agents must not modify another workstream's files or merge another branch. If a 
 
 ## Required sequence
 
-1. Coordinator approves this PRD and the updated OpenAPI contract.
+1. Coordinator records requirements approval and approves the corrected, versioned OpenAPI contract.
 2. Backend, mobile, Android, and security agents work in parallel on isolated branches.
 3. Testing agents run actual automated tests against the responsible branches.
 4. Failed tests return to the responsible developer with logs and a fix request.

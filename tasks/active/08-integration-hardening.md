@@ -1,10 +1,11 @@
 # Active task: Integration hardening and OWASP security remediation
 
 - ID: `08-integration-hardening`
-- State: `planned`
+- State: `requirements-approved`
 - PRD: [`tasks/06-integration-hardening-security/README.md`](../06-integration-hardening-security/README.md)
 - Coordinator branch: `codex/coordinator`
 - Merge gate: Integration Review must approve
+- Scope decision: feature logic, ownership, validation, and injection prevention are the primary implementation focus; broad security hardening remains a fix/verification track.
 
 ## Delegated branches
 
@@ -28,7 +29,8 @@
 
 ## Coordinator checklist
 
-- [ ] Approve this PRD and contract changes.
+- [x] Approve this PRD requirements and feature-first scope.
+- [ ] Approve corrected OpenAPI route, payload, auth-header, and ID representations.
 - [ ] Dispatch isolated implementation and audit branches.
 - [ ] Collect actual test commands and logs.
 - [ ] Return failures to the responsible developer.
