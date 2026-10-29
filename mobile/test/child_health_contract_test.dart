@@ -41,19 +41,22 @@ class _FixedHealthProvider implements ChildHealthProvider {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('child health does not call the unsupported device health route', () async {
-    final client = _RecordingHeaderClient();
-    final repository = HttpChildRepository(
-      client,
-      MemoryChildDeviceStore(),
-      healthProvider: _FixedHealthProvider(),
-    );
+  test(
+    'child health does not call the unsupported device health route',
+    () async {
+      final client = _RecordingHeaderClient();
+      final repository = HttpChildRepository(
+        client,
+        MemoryChildDeviceStore(),
+        healthProvider: _FixedHealthProvider(),
+      );
 
-    final health = await repository.getHealth();
+      final health = await repository.getHealth();
 
-    expect(health.monitoring, MonitoringState.active);
-    expect(client.calls, isEmpty);
-  });
+      expect(health.monitoring, MonitoringState.active);
+      expect(client.calls, isEmpty);
+    },
+  );
 
   test('unsupported platform status is rendered as unsupported', () async {
     const channel = MethodChannel('com.tamdan.mobile/android_runtime');
@@ -66,7 +69,9 @@ void main() {
           .setMockMethodCallHandler(channel, null),
     );
 
-    final health = await AndroidChildHealthProvider(channel: channel).readHealth();
+    final health = await AndroidChildHealthProvider(
+      channel: channel,
+    ).readHealth();
 
     expect(health.monitoring, MonitoringState.unsupported);
     expect(health.sync, SyncState.unsupported);
