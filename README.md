@@ -218,6 +218,10 @@ Before any merge or deployment, the seven blockers found by Integration Review m
 
 Backend, Flutter, Android, security, and testing work is isolated into dedicated Git branches. Testing agents return failed tasks to the responsible developer with the exact command and logs. Integration Review is the final approval authority; unsupported device capabilities and unavailable environments are recorded as blockers, never treated as passing evidence.
 
+## 7. Remaining Product Completion
+
+The remaining end-to-end feature work is tracked in the [Remaining Product Completion PRD](tasks/07-remaining-product-completion/README.md). It covers the unfinished Parent Mobile, Child Mobile, Android monitoring/enforcement, Identity/Device Backend, and Safety/Policy Backend journeys. Work must continue from the approved contracts and final implementation knowledge base, not from the old audit.
+
 ## 5. Machine-Learning Opportunities
 
 Machine-learning development is managed separately from the five software tasks.
