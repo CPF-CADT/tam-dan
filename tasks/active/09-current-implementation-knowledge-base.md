@@ -9,6 +9,7 @@
 - Merge/deployment: not approved.
 - API contract: OpenAPI `v1.1.0`, `/api/v1`, numeric `Long` IDs, `X-Device-Credential`.
 - Primary scope: feature logic, ownership boundaries, validation, and injection prevention.
+- Native runtime verification: backend and Android emulator checks now available; final security evidence remains incomplete.
 
 ## What was implemented
 
@@ -71,6 +72,19 @@ Backend test evidence: `cb13b55`, based on backend implementation `9795ee3`.
 - Kotlin compilation: passed.
 - Debug assemble/build: passed.
 - Unit test task: passed, but no Android unit sources existed.
+
+## Native runtime verification update
+
+- Backend canonical native-runtime commit: `080baf6`.
+- Native PostgreSQL: reachable with role/database `tamdan`.
+- Backend `./mvnw verify`: passed; 75 unit tests and 110 integration tests, zero failures/errors.
+- Backend log: `/tmp/tamdan-verify-final-rerun.log`.
+- Android emulator: `emulator-5554` reported `device`.
+- Flutter analyze, Flutter tests, APK build, Flutter integration tests, and Android compile/assemble passed.
+- Mobile runtime commits: `3c60255` and `c4e69e8`.
+- OWASP register: [native-runtime-owasp-risk-register.md](native-runtime-owasp-risk-register.md).
+
+Remaining security work: dependency audit data/API configuration, committed sample-secret cleanup, structured sensitive-log redaction evidence, and final exact-commit review.
 
 ## Known blockers
 
