@@ -279,7 +279,7 @@ public class UserService {
         userRepository
             .findAllByActivatedIsFalseAndActivationKeyIsNotNullAndCreatedDateBefore(Instant.now().minus(3, ChronoUnit.DAYS))
             .forEach(user -> {
-                LOG.debug("Deleting not activated user {}", user.getLogin());
+                LOG.debug("Deleting not activated user");
                 userRepository.delete(user);
             });
     }

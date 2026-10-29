@@ -128,9 +128,19 @@ public class LoggingAspect {
     }
 
     private boolean containsSensitiveValue(Throwable exception) {
-        String message = exception.getMessage();
-        if (message == null) return false;
-        String normalized = message.toLowerCase(java.util.Locale.ROOT);
-        return normalized.contains("password") || normalized.contains("token") || normalized.contains("credential") || normalized.contains("pairing");
+        for (Throwable current = exception; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message == null) continue;
+            String normalized = message.toLowerCase(java.util.Locale.ROOT);
+            if (
+                normalized.contains("password") ||
+                normalized.contains("token") ||
+                normalized.contains("credential") ||
+                normalized.contains("pairing") ||
+                normalized.matches(".*\\b[\\w.+-]+@[\\w.-]+\\.[a-z]{2,}\\b.*") ||
+                normalized.matches(".*\\+?[0-9][0-9 .()\\-]{6,}.*")
+            ) return true;
+        }
+        return false;
     }
 }
