@@ -2,7 +2,7 @@
 
 - ID: `00-coordinator-workflow`
 - Role: `coordinator`
-- State: `implementation-ready`
+- State: `needs-fix`
 - Branch: `codex/coordinator`
 - Requirements approval: Figma prototype reviewed; product requirements and API contract remain required gates
 - OpenAPI approval: `pending`
@@ -29,6 +29,8 @@ Planning and UI Design completed read-only review. Their results are recorded in
 The full implementation audit is recorded in `03-implementation-audit.md`. Contract decisions are approved in `04-contract-decisions.md` and versioned under `agent-workflow/contracts/`.
 
 No implementation agent may start until the outstanding approval items in those results are resolved.
+
+Implementation waves have run, but Integration Review still rejects merge. Remaining findings are recorded in the latest review: auth route mismatch, unregistered secure-storage channel, unsupported native enforcement, contract ID-type mismatch, entity leakage, and incomplete report semantics. No merge or deployment is allowed.
 
 ## Required order
 
