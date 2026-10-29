@@ -1,0 +1,280 @@
+openapi: 3.0.3
+info:
+  title: Tam Dan API
+  version: 1.2.0-proposal
+  description: |
+    Proposed additive contract for PRD 7 product completion. This file is not
+    approved and must not be implemented until the coordinator and product
+    owner approve it. v1.1.0 remains the current public contract.
+servers:
+  - url: /api/v1
+security:
+  - parentJwt: []
+paths:
+  /auth/register:
+    post:
+      security: []
+      operationId: registerParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RegisterRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/RegisterResponse'}, '400': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /auth/login:
+    post:
+      security: []
+      operationId: loginParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/LoginRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/AuthResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /auth/refresh:
+    post:
+      security: []
+      operationId: refreshParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RefreshRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/AuthResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /auth/logout:
+    post:
+      operationId: logoutParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RefreshRequest'}}}}
+      responses: {'204': {description: Session revoked}, '401': {$ref: '#/components/responses/Problem'}}
+  /auth/logout-all:
+    post:
+      operationId: logoutAllParentSessions
+      responses: {'204': {description: Sessions revoked}, '401': {$ref: '#/components/responses/Problem'}}
+  /families/me/children:
+    get:
+      operationId: listChildren
+      responses: {'200': {$ref: '#/components/responses/ChildListResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+    post:
+      operationId: createChild
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ChildRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ChildResponse'}, '400': {$ref: '#/components/responses/Problem'}, '401': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}:
+    parameters: [{'$ref': '#/components/parameters/ChildId'}]
+    patch:
+      operationId: updateChild
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/UpdateChildRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/ChildResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/deactivation:
+    post:
+      operationId: deactivateChild
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'204': {description: Child deactivated}, '404': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/pairing-codes:
+    post:
+      operationId: createPairingCode
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'201': {$ref: '#/components/responses/PairingCodeResponse'}, '404': {$ref: '#/components/responses/Problem'}, '429': {$ref: '#/components/responses/Problem'}}
+  /pairing/complete:
+    post:
+      security: []
+      operationId: completeDevicePairing
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PairDeviceRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/PairingCompletionResponse'}, '400': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}, '429': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/devices:
+    get:
+      operationId: listDevices
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/DeviceListResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/devices/{deviceId}:
+    parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/DeviceId'}]
+    patch:
+      operationId: renameDevice
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RenameDeviceRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/DeviceResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/devices/{deviceId}/revocation:
+    post:
+      operationId: revokeDevice
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/DeviceId'}]
+      responses: {'204': {description: Device revoked}, '404': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/devices/{deviceId}/credential-rotation:
+    post:
+      operationId: rotateDeviceCredential
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/DeviceId'}]
+      responses: {'201': {$ref: '#/components/responses/CredentialRotationResponse'}, '404': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /devices/me/health:
+    put:
+      security: [{deviceCredential: []}]
+      operationId: updateDeviceHealth
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DeviceHealthUpdate'}}}}
+      responses: {'204': {description: Health accepted}, '400': {$ref: '#/components/responses/Problem'}, '401': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/devices/{deviceId}/health:
+    get:
+      operationId: getDeviceHealth
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/DeviceId'}]
+      responses: {'200': {$ref: '#/components/responses/DeviceHealthResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/consent:
+    get:
+      operationId: getChildConsent
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/ConsentResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+    put:
+      operationId: recordChildConsent
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ConsentRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/ConsentResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /devices/me/consent:
+    post:
+      security: [{deviceCredential: []}]
+      operationId: confirmDeviceConsentDisclosure
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ConsentDisclosureConfirmation'}}}}
+      responses: {'204': {description: Disclosure confirmation accepted}, '400': {$ref: '#/components/responses/Problem'}, '401': {$ref: '#/components/responses/Problem'}}
+  /devices/me/activity-events:
+    post:
+      security: [{deviceCredential: []}]
+      operationId: ingestActivity
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ActivityBatch'}}}}
+      responses: {'200': {$ref: '#/components/responses/IngestionResponse'}, '400': {$ref: '#/components/responses/Problem'}, '401': {$ref: '#/components/responses/Problem'}, '413': {$ref: '#/components/responses/Problem'}}
+  /devices/me/domain-observations:
+    post:
+      security: [{deviceCredential: []}]
+      operationId: ingestDomainObservations
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DomainObservationBatch'}}}}
+      responses: {'200': {$ref: '#/components/responses/IngestionResponse'}, '400': {$ref: '#/components/responses/Problem'}, '401': {$ref: '#/components/responses/Problem'}, '413': {$ref: '#/components/responses/Problem'}}
+  /devices/me/policies:
+    get:
+      security: [{deviceCredential: []}]
+      operationId: downloadPolicies
+      responses: {'200': {$ref: '#/components/responses/PolicyDownloadResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /devices/me/policies/{policyId}/acknowledgements:
+    post:
+      security: [{deviceCredential: []}]
+      operationId: acknowledgePolicy
+      parameters: [{'$ref': '#/components/parameters/PolicyId'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyAcknowledgement'}}}}
+      responses: {'200': {$ref: '#/components/responses/PolicyAcknowledgementResponse'}, '400': {$ref: '#/components/responses/Problem'}, '401': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/reports/usage:
+    get:
+      operationId: getUsageReport
+      parameters:
+        - {'$ref': '#/components/parameters/ChildId'}
+        - {name: from, in: query, required: true, schema: {type: string, format: date-time}}
+        - {name: to, in: query, required: true, schema: {type: string, format: date-time}}
+      responses: {'200': {$ref: '#/components/responses/UsageReportResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/alerts:
+    get:
+      operationId: listAlerts
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/Page'}, {'$ref': '#/components/parameters/PageSize'}]
+      responses: {'200': {$ref: '#/components/responses/AlertListResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /alerts/{alertId}/review:
+    post:
+      operationId: reviewAlert
+      parameters: [{'$ref': '#/components/parameters/AlertId'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/AlertReview'}}}}
+      responses: {'200': {$ref: '#/components/responses/AlertResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /alerts/{alertId}/dismissal:
+    post:
+      operationId: dismissAlert
+      parameters: [{'$ref': '#/components/parameters/AlertId'}]
+      responses: {'200': {$ref: '#/components/responses/AlertResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/policies:
+    get:
+      operationId: listPolicies
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/Page'}, {'$ref': '#/components/parameters/PageSize'}]
+      responses: {'200': {$ref: '#/components/responses/PolicyListResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+    post:
+      operationId: createPolicy
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/PolicyResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/policies/{policyId}:
+    patch:
+      operationId: updatePolicy
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/PolicyId'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/PolicyResponse'}, '400': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+    delete:
+      operationId: removePolicy
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/PolicyId'}]
+      responses: {'204': {description: Policy removed}, '404': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/policies/{policyId}/pause:
+    post:
+      operationId: pausePolicy
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/PolicyId'}]
+      responses: {'200': {$ref: '#/components/responses/PolicyResponse'}, '404': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/policies/{policyId}/delivery:
+    get:
+      operationId: getPolicyDeliveryStatus
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {'$ref': '#/components/parameters/PolicyId'}]
+      responses: {'200': {$ref: '#/components/responses/PolicyDeliveryResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+components:
+  parameters:
+    ChildId: {name: childId, in: path, required: true, schema: {$ref: '#/components/schemas/LongId'}}
+    DeviceId: {name: deviceId, in: path, required: true, schema: {$ref: '#/components/schemas/LongId'}}
+    PolicyId: {name: policyId, in: path, required: true, schema: {$ref: '#/components/schemas/LongId'}}
+    AlertId: {name: alertId, in: path, required: true, schema: {$ref: '#/components/schemas/LongId'}}
+    Page: {name: page, in: query, required: false, schema: {type: integer, format: int32, minimum: 0, maximum: 100000, default: 0}}
+    PageSize: {name: pageSize, in: query, required: false, schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 20}}
+  securitySchemes:
+    parentJwt: {type: http, scheme: bearer, bearerFormat: JWT}
+    deviceCredential: {type: apiKey, in: header, name: X-Device-Credential, description: One-time-issued device credential; never log or return it again.}
+  responses:
+    RegisterResponse: {description: Registered parent, content: {application/json: {schema: {$ref: '#/components/schemas/AuthResponseEnvelope'}}}}
+    AuthResponse: {description: Authentication response, content: {application/json: {schema: {$ref: '#/components/schemas/AuthResponseEnvelope'}}}}
+    ChildResponse: {description: Child, content: {application/json: {schema: {$ref: '#/components/schemas/ChildResponseEnvelope'}}}}
+    ChildListResponse: {description: Children, content: {application/json: {schema: {$ref: '#/components/schemas/ChildListResponseEnvelope'}}}}
+    PairingCodeResponse: {description: Pairing code, content: {application/json: {schema: {$ref: '#/components/schemas/PairingCodeResponseEnvelope'}}}}
+    PairingCompletionResponse: {description: Pairing result, content: {application/json: {schema: {$ref: '#/components/schemas/PairingCompletionResponseEnvelope'}}}}
+    DeviceResponse: {description: Device, content: {application/json: {schema: {$ref: '#/components/schemas/DeviceResponseEnvelope'}}}}
+    DeviceListResponse: {description: Devices, content: {application/json: {schema: {$ref: '#/components/schemas/DeviceListResponseEnvelope'}}}}
+    CredentialRotationResponse: {description: Rotated credential, content: {application/json: {schema: {$ref: '#/components/schemas/CredentialRotationResponseEnvelope'}}}}
+    DeviceHealthResponse: {description: Device health, content: {application/json: {schema: {$ref: '#/components/schemas/DeviceHealthResponseEnvelope'}}}}
+    ConsentResponse: {description: Consent, content: {application/json: {schema: {$ref: '#/components/schemas/ConsentResponseEnvelope'}}}}
+    IngestionResponse: {description: Ingestion result, content: {application/json: {schema: {$ref: '#/components/schemas/IngestionResponseEnvelope'}}}}
+    UsageReportResponse: {description: Typed usage report, content: {application/json: {schema: {$ref: '#/components/schemas/UsageReportResponseEnvelope'}}}}
+    AlertResponse: {description: Alert, content: {application/json: {schema: {$ref: '#/components/schemas/AlertResponseEnvelope'}}}}
+    AlertListResponse: {description: Alerts, content: {application/json: {schema: {$ref: '#/components/schemas/AlertListResponseEnvelope'}}}}
+    PolicyResponse: {description: Policy, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyResponseEnvelope'}}}}
+    PolicyListResponse: {description: Policies, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyListResponseEnvelope'}}}}
+    PolicyDownloadResponse: {description: Device policies, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyDownloadResponseEnvelope'}}}}
+    PolicyAcknowledgementResponse: {description: Policy acknowledgement, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyAcknowledgementResponseEnvelope'}}}}
+    PolicyDeliveryResponse: {description: Policy delivery, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyDeliveryResponseEnvelope'}}}}
+    Problem: {description: RFC 7807-compatible error, content: {application/problem+json: {schema: {$ref: '#/components/schemas/Problem'}}}}
+  schemas:
+    LongId: {type: integer, format: int64, minimum: 1}
+    RegisterRequest: {type: object, additionalProperties: false, required: [login, email, password], properties: {login: {type: string, pattern: '^[A-Za-z0-9._-]{1,50}$'}, email: {type: string, format: email, maxLength: 254}, password: {type: string, format: password, minLength: 4, maxLength: 100}, firstName: {type: string, maxLength: 50}, lastName: {type: string, maxLength: 50}}}
+    LoginRequest: {type: object, additionalProperties: false, required: [login, password], properties: {login: {type: string, maxLength: 254}, password: {type: string, format: password, minLength: 4, maxLength: 100}}}
+    RefreshRequest: {type: object, additionalProperties: false, required: [refreshToken], properties: {refreshToken: {type: string, minLength: 1, maxLength: 4096}}}
+    ChildRequest: {type: object, additionalProperties: false, required: [displayName], properties: {displayName: {type: string, minLength: 1, maxLength: 100}}}
+    UpdateChildRequest: {type: object, additionalProperties: false, required: [displayName], properties: {displayName: {type: string, minLength: 1, maxLength: 100}}}
+    PairDeviceRequest: {type: object, additionalProperties: false, required: [pairingCode, deviceIdentifier, platform, appVersion, displayName, capabilities], properties: {pairingCode: {type: string, minLength: 1, maxLength: 20}, deviceIdentifier: {type: string, minLength: 1, maxLength: 255}, platform: {type: string, minLength: 1, maxLength: 30}, appVersion: {type: string, minLength: 1, maxLength: 30}, displayName: {type: string, minLength: 1, maxLength: 100}, capabilities: {$ref: '#/components/schemas/DeviceCapabilities'}}}
+    DeviceCapabilities: {type: object, additionalProperties: false, properties: {usageObservation: {type: boolean}, domainObservation: {type: boolean}, vpnEnforcement: {type: boolean}, applicationEnforcement: {type: boolean}}}
+    RenameDeviceRequest: {type: object, additionalProperties: false, required: [displayName], properties: {displayName: {type: string, minLength: 1, maxLength: 100}}}
+    DeviceHealthUpdate: {type: object, additionalProperties: false, required: [schemaVersion, reportedAt, monitoringState, syncState], properties: {schemaVersion: {type: string, minLength: 1, maxLength: 30}, reportedAt: {type: string, format: date-time}, monitoringState: {type: string, enum: [ACTIVE, INACTIVE, PERMISSION_DENIED, UNSUPPORTED, FAILED]}, syncState: {type: string, enum: [CURRENT, STALE, OFFLINE, FAILED]}, policyVersion: {type: string, maxLength: 100}, queuedEventCount: {type: integer, minimum: 0, maximum: 100000}}}
+    DeviceHealth: {allOf: [{$ref: '#/components/schemas/DeviceHealthUpdate'}, {type: object, required: [deviceId, childId, observedAt], properties: {deviceId: {$ref: '#/components/schemas/LongId'}, childId: {$ref: '#/components/schemas/LongId'}, observedAt: {type: string, format: date-time}}}]}
+    ConsentRequest: {type: object, additionalProperties: false, required: [version, decision, decidedAt], properties: {version: {type: string, minLength: 1, maxLength: 30}, decision: {type: string, enum: [GRANTED, WITHDRAWN]}, decidedAt: {type: string, format: date-time}, disclosureHash: {type: string, minLength: 1, maxLength: 128}}}
+    ConsentDisclosureConfirmation: {type: object, additionalProperties: false, required: [version, confirmedAt], properties: {version: {type: string, minLength: 1, maxLength: 30}, confirmedAt: {type: string, format: date-time}}}
+    ConsentRecord: {type: object, required: [childId, version, decision, decidedAt], properties: {childId: {$ref: '#/components/schemas/LongId'}, version: {type: string}, decision: {type: string, enum: [GRANTED, WITHDRAWN]}, decidedAt: {type: string, format: date-time}, confirmedByDevice: {type: boolean}}}
+    ActivityBatch: {$ref: '#/components/schemas/BatchEnvelope'}
+    DomainObservationBatch: {$ref: '#/components/schemas/BatchEnvelope'}
+    BatchEnvelope: {type: object, additionalProperties: false, required: [schemaVersion, events], properties: {schemaVersion: {type: string, minLength: 1, maxLength: 30}, events: {type: array, minItems: 1, maxItems: 500, items: {$ref: '#/components/schemas/Event'}}}}
+    Event: {type: object, additionalProperties: false, required: [eventId, occurredAt], properties: {eventId: {type: string, minLength: 1, maxLength: 100}, occurredAt: {type: string, format: date-time}, payload: {type: object, additionalProperties: false}}}
+    PolicyAcknowledgement: {type: object, additionalProperties: false, required: [policyVersion, status, reportedAt], properties: {policyVersion: {type: integer, format: int64, minimum: 1}, status: {type: string, enum: [ACTIVE, FAILED, UNSUPPORTED]}, reportedAt: {type: string, format: date-time}, failureReason: {type: string, maxLength: 500}}}
+    PolicyRequest: {type: object, additionalProperties: false, required: [type, target], properties: {type: {type: string, enum: [APPLICATION, GAME, DOMAIN]}, target: {type: string, minLength: 1, maxLength: 255, pattern: '^[^\u0000-\u001F\u007F]+$'}}}
+    AlertReview: {type: object, additionalProperties: false, required: [state], properties: {state: {type: string, enum: [REVIEWED] }, note: {type: string, maxLength: 500}}}
+    UsageReport: {type: object, required: [childId, from, to, generatedAt, dataThrough, freshness, completeness, sourceDeviceCoverage, risk], properties: {childId: {$ref: '#/components/schemas/LongId'}, from: {type: string, format: date-time}, to: {type: string, format: date-time}, generatedAt: {type: string, format: date-time}, dataThrough: {type: string, format: date-time}, freshness: {type: string, enum: [FRESH, STALE, DELAYED, UNKNOWN]}, completeness: {type: string, enum: [COMPLETE, PARTIAL, INSUFFICIENT, UNKNOWN]}, unknownReason: {type: string, maxLength: 500}, sourceDeviceCoverage: {type: array, minItems: 0, maxItems: 100, items: {$ref: '#/components/schemas/SourceDeviceCoverage'}}, risk: {type: string, enum: [SAFE, RISK, UNKNOWN]}}}
+    SourceDeviceCoverage: {type: object, required: [deviceId, status], properties: {deviceId: {$ref: '#/components/schemas/LongId'}, expectedThrough: {type: string, format: date-time}, observedThrough: {type: string, format: date-time}, status: {type: string, enum: [COMPLETE, PARTIAL, MISSING, DELAYED, UNKNOWN]}, missingReason: {type: string, maxLength: 255}}}
+    Alert: {type: object, required: [id, childId, state, severity, createdAt], properties: {id: {$ref: '#/components/schemas/LongId'}, childId: {$ref: '#/components/schemas/LongId'}, state: {type: string, enum: [OPEN, REVIEWED, DISMISSED]}, severity: {type: string, enum: [LOW, MEDIUM, HIGH, UNKNOWN]}, title: {type: string, maxLength: 200}, detail: {type: string, maxLength: 2000}, createdAt: {type: string, format: date-time}, reviewedAt: {type: string, format: date-time, nullable: true}}}
+    Policy: {type: object, required: [id, childId, version, type, target, state], properties: {id: {$ref: '#/components/schemas/LongId'}, childId: {$ref: '#/components/schemas/LongId'}, version: {type: integer, format: int64, minimum: 1}, type: {type: string, enum: [APPLICATION, GAME, DOMAIN]}, target: {type: string, maxLength: 255}, state: {type: string, enum: [DRAFT, PENDING_DELIVERY, ACTIVE, PAUSED, REMOVED, FAILED, UNSUPPORTED]}, updatedAt: {type: string, format: date-time}}}
+    PolicyDelivery: {type: object, required: [policyId, policyVersion, state, devices], properties: {policyId: {$ref: '#/components/schemas/LongId'}, policyVersion: {type: integer, format: int64, minimum: 1}, state: {type: string, enum: [PENDING, PARTIAL, ACKNOWLEDGED, FAILED, UNSUPPORTED]}, devices: {type: array, maxItems: 100, items: {$ref: '#/components/schemas/DevicePolicyDelivery'}}}}
+    DevicePolicyDelivery: {type: object, required: [deviceId, state], properties: {deviceId: {$ref: '#/components/schemas/LongId'}, state: {type: string, enum: [PENDING, ACTIVE, FAILED, UNSUPPORTED]}, acknowledgedVersion: {type: integer, format: int64, minimum: 1, nullable: true}, reportedAt: {type: string, format: date-time, nullable: true}, failureReason: {type: string, maxLength: 500}}}
+    IngestionResult: {type: object, required: [accepted, duplicate, rejected], properties: {accepted: {type: integer, minimum: 0}, duplicate: {type: integer, minimum: 0}, rejected: {type: integer, minimum: 0}}}
+    Child: {type: object, required: [id, displayName, status], properties: {id: {$ref: '#/components/schemas/LongId'}, displayName: {type: string}, status: {type: string, enum: [ACTIVE, DEACTIVATED]}}}
+    Device: {type: object, required: [id, childId, displayName, status], properties: {id: {$ref: '#/components/schemas/LongId'}, childId: {$ref: '#/components/schemas/LongId'}, displayName: {type: string}, status: {type: string, enum: [PAIRING_PENDING, ACTIVE, REVOKED]}, platform: {type: string}, capabilities: {$ref: '#/components/schemas/DeviceCapabilities'}}}
+    AuthResponseEnvelope: {type: object, required: [data], properties: {data: {type: object}}}
+    ChildResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/Child'}}}
+    ChildListResponseEnvelope: {type: object, required: [data], properties: {data: {type: array, items: {$ref: '#/components/schemas/Child'}}}}
+    PairingCodeResponseEnvelope: {type: object, required: [data], properties: {data: {type: object, required: [expiresAt], properties: {expiresAt: {type: string, format: date-time}, code: {type: string, maxLength: 20}}}}}
+    PairingCompletionResponseEnvelope: {type: object, required: [data], properties: {data: {type: object, required: [device, credential], properties: {device: {$ref: '#/components/schemas/Device'}, credential: {type: string, minLength: 1}}}}}
+    DeviceResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/Device'}}}
+    DeviceListResponseEnvelope: {type: object, required: [data], properties: {data: {type: array, items: {$ref: '#/components/schemas/Device'}}}}
+    CredentialRotationResponseEnvelope: {type: object, required: [data], properties: {data: {type: object, required: [deviceId, credential], properties: {deviceId: {$ref: '#/components/schemas/LongId'}, credential: {type: string, minLength: 1}}}}}
+    DeviceHealthResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/DeviceHealth'}}}
+    ConsentResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/ConsentRecord'}}}
+    IngestionResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/IngestionResult'}}}
+    UsageReportResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/UsageReport'}}}
+    AlertResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/Alert'}}}
+    AlertListResponseEnvelope: {type: object, required: [data], properties: {data: {type: object, required: [items, page, pageSize], properties: {items: {type: array, items: {$ref: '#/components/schemas/Alert'}}, page: {type: integer}, pageSize: {type: integer}, total: {type: integer, minimum: 0}}}}}
+    PolicyResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/Policy'}}}
+    PolicyListResponseEnvelope: {type: object, required: [data], properties: {data: {type: object, required: [items, page, pageSize], properties: {items: {type: array, items: {$ref: '#/components/schemas/Policy'}}, page: {type: integer}, pageSize: {type: integer}, total: {type: integer, minimum: 0}}}}}
+    PolicyDownloadResponseEnvelope: {type: object, required: [data], properties: {data: {type: array, items: {$ref: '#/components/schemas/Policy'}}}}
+    PolicyAcknowledgementResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/DevicePolicyDelivery'}}}
+    PolicyDeliveryResponseEnvelope: {type: object, required: [data], properties: {data: {$ref: '#/components/schemas/PolicyDelivery'}}}
+    Problem: {type: object, required: [title, status, code], properties: {type: {type: string, format: uri}, title: {type: string}, status: {type: integer}, code: {type: string}, detail: {type: string}, instance: {type: string}}}

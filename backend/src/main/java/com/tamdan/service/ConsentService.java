@@ -12,6 +12,8 @@ import com.tamdan.repository.ChildDeviceRepository;
 import com.tamdan.repository.ChildProfileRepository;
 import com.tamdan.repository.ConsentRecordRepository;
 import com.tamdan.security.AuthenticatedDeviceIdResolver;
+import com.tamdan.dto.request.ConsentDecisionRequest;
+import com.tamdan.dto.response.ConsentV1Response;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +67,49 @@ public class ConsentService {
         return toResponse(record);
     }
 
+    @Transactional
+    public ConsentV1Response recordDecision(Long parentId, Long childId, ConsentDecisionRequest request) {
+        Family family = familyService.requireFamilyForParent(parentId);
+        ChildProfile child = childProfileRepository.findByIdAndFamilyIdAndActiveTrue(childId, family.getId()).orElseThrow(() ->
+            new ResourceNotFoundException("Active child profile was not found"));
+        ConsentRecord record = consentRecordRepository.save(
+            ConsentRecord.create(family, child, request.version().trim(), "PARENT", parentId, request.decidedAt(), request.decision().name())
+        );
+        if (auditService != null) auditService.record(new com.tamdan.dto.request.AuditCommand("PARENT", parentId, family.getId(), "consent-decision", "CHILD", childId, "SUCCESS", null, null, null, java.util.Map.of()));
+        return toV1Response(record);
+    }
+
+    @Transactional(readOnly = true)
+    public ConsentV1Response currentDecision(Long parentId, Long childId) {
+        Family family = familyService.requireFamilyForParent(parentId);
+        childProfileRepository.findByIdAndFamilyIdAndActiveTrue(childId, family.getId()).orElseThrow(() ->
+            new ResourceNotFoundException("Active child profile was not found"));
+        return consentRecordRepository.findFirstByChildProfileIdAndFamilyIdOrderByAcknowledgedAtDesc(childId, family.getId())
+            .map(this::toV1Response)
+            .orElseThrow(() -> new ResourceNotFoundException("Consent record was not found"));
+    }
+
+    @Transactional
+    public void confirmDisclosure(Long deviceId, String version, Instant confirmedAt) {
+        ChildDevice device = childDeviceRepository.findById(deviceId).orElseThrow(() -> new ResourceNotFoundException("Device was not found"));
+        if (!Boolean.TRUE.equals(device.getActive()) || device.getRevokedAt() != null || !Boolean.TRUE.equals(device.getChildProfile().getActive())) {
+            throw new ResourceNotFoundException("Active device was not found");
+        }
+        ConsentRecord record = consentRecordRepository.findFirstByChildProfileIdAndFamilyIdOrderByAcknowledgedAtDesc(
+            device.getChildProfile().getId(), device.getChildProfile().getFamily().getId()
+        ).filter(candidate -> candidate.getDocumentVersion().equals(version.trim())).orElseThrow(() ->
+            new ResourceNotFoundException("Consent version was not found"));
+        record.confirmByDevice(confirmedAt);
+        if (auditService != null) auditService.record(new com.tamdan.dto.request.AuditCommand("DEVICE", deviceId, device.getChildProfile().getFamily().getId(), "consent-disclosure-confirmation", "CHILD", device.getChildProfile().getId(), "SUCCESS", null, null, null, java.util.Map.of()));
+    }
+
     private ConsentResponse toResponse(ConsentRecord record) {
         return new ConsentResponse(record.getId(), record.getChildProfile().getId(), record.getDocumentVersion(), record.getActorType(), record.getAcknowledgedAt(), record.getPermissionState());
+    }
+
+    private ConsentV1Response toV1Response(ConsentRecord record) {
+        return new ConsentV1Response(
+            record.getChildProfile().getId(), record.getDocumentVersion(), record.getPermissionState(), record.getAcknowledgedAt(), record.getConfirmedByDevice()
+        );
     }
 }

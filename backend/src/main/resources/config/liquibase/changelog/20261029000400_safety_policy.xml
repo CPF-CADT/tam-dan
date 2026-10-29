@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261029000400" author="tamdan">
+        <createTable tableName="safety_event">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="child_device_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="child_profile_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="event_id" type="varchar(100)"><constraints nullable="false"/></column>
+            <column name="kind" type="varchar(20)"><constraints nullable="false"/></column>
+            <column name="schema_version" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="occurred_at" type="timestamp"><constraints nullable="false"/></column>
+            <column name="payload_json" type="text"><constraints nullable="false"/></column>
+            <column name="received_at" type="timestamp"><constraints nullable="false"/></column>
+        </createTable>
+        <addUniqueConstraint tableName="safety_event" columnNames="child_device_id,event_id" constraintName="ux_safety_event_device_event"/>
+        <addForeignKeyConstraint baseTableName="safety_event" baseColumnNames="child_device_id" referencedTableName="child_device" referencedColumnNames="id" constraintName="fk_safety_event_device"/>
+        <addForeignKeyConstraint baseTableName="safety_event" baseColumnNames="child_profile_id" referencedTableName="child_profile" referencedColumnNames="id" constraintName="fk_safety_event_child"/>
+        <createTable tableName="safety_policy">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="child_profile_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="version" type="bigint"><constraints nullable="false"/></column>
+            <column name="type" type="varchar(20)"><constraints nullable="false"/></column>
+            <column name="target" type="varchar(255)"><constraints nullable="false"/></column>
+            <column name="state" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="created_at" type="timestamp"><constraints nullable="false"/></column>
+            <column name="updated_at" type="timestamp"><constraints nullable="false"/></column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="safety_policy" baseColumnNames="child_profile_id" referencedTableName="child_profile" referencedColumnNames="id" constraintName="fk_safety_policy_child"/>
+        <createTable tableName="policy_delivery">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="policy_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="child_device_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="policy_version" type="bigint"><constraints nullable="false"/></column>
+            <column name="state" type="varchar(20)"><constraints nullable="false"/></column>
+            <column name="acknowledged_version" type="bigint"/>
+            <column name="reported_at" type="timestamp"/>
+            <column name="failure_reason" type="varchar(500)"/>
+        </createTable>
+        <addUniqueConstraint tableName="policy_delivery" columnNames="policy_id,child_device_id" constraintName="ux_policy_delivery_policy_device"/>
+        <addForeignKeyConstraint baseTableName="policy_delivery" baseColumnNames="policy_id" referencedTableName="safety_policy" referencedColumnNames="id" constraintName="fk_policy_delivery_policy"/>
+        <addForeignKeyConstraint baseTableName="policy_delivery" baseColumnNames="child_device_id" referencedTableName="child_device" referencedColumnNames="id" constraintName="fk_policy_delivery_device"/>
+        <createTable tableName="safety_alert">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="child_profile_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="dedupe_key" type="varchar(150)"><constraints nullable="false"/></column>
+            <column name="state" type="varchar(20)"><constraints nullable="false"/></column>
+            <column name="severity" type="varchar(20)"><constraints nullable="false"/></column>
+            <column name="title" type="varchar(200)"/>
+            <column name="detail" type="varchar(2000)"/>
+            <column name="created_at" type="timestamp"><constraints nullable="false"/></column>
+            <column name="reviewed_at" type="timestamp"/>
+            <column name="review_note" type="varchar(500)"/>
+        </createTable>
+        <addUniqueConstraint tableName="safety_alert" columnNames="child_profile_id,dedupe_key" constraintName="ux_safety_alert_dedupe"/>
+        <addForeignKeyConstraint baseTableName="safety_alert" baseColumnNames="child_profile_id" referencedTableName="child_profile" referencedColumnNames="id" constraintName="fk_safety_alert_child"/>
+    </changeSet>
+</databaseChangeLog>

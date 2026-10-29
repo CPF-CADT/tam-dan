@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="20261029000100" author="tamdan">
+        <addColumn tableName="consent_record">
+            <column name="confirmed_by_device" type="boolean" defaultValueBoolean="false"><constraints nullable="false"/></column>
+        </addColumn>
+        <createTable tableName="device_health">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="child_device_id" type="bigint"><constraints nullable="false" unique="true" uniqueConstraintName="ux_device_health_device"/></column>
+            <column name="schema_version" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="reported_at" type="timestamp"><constraints nullable="false"/></column>
+            <column name="monitoring_state" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="sync_state" type="varchar(30)"><constraints nullable="false"/></column>
+            <column name="policy_version" type="varchar(100)"/>
+            <column name="queued_event_count" type="int"/>
+            <column name="observed_at" type="timestamp"><constraints nullable="false"/></column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="device_health" baseColumnNames="child_device_id" referencedTableName="child_device" referencedColumnNames="id" constraintName="fk_device_health_device"/>
+        <sql dbms="postgresql" splitStatements="true">
+            ALTER TABLE consent_record ALTER COLUMN acknowledged_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE device_health ALTER COLUMN reported_at TYPE TIMESTAMP WITH TIME ZONE;
+            ALTER TABLE device_health ALTER COLUMN observed_at TYPE TIMESTAMP WITH TIME ZONE;
+            CREATE INDEX ix_device_health_child_device ON device_health (child_device_id);
+        </sql>
+        <rollback>
+            <sql dbms="postgresql" splitStatements="true">DROP INDEX IF EXISTS ix_device_health_child_device;</sql>
+            <dropForeignKeyConstraint baseTableName="device_health" constraintName="fk_device_health_device"/>
+            <dropTable tableName="device_health"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

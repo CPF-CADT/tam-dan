@@ -54,7 +54,18 @@ public class ConsentRecord {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "confirmed_by_device", nullable = false)
+    private Boolean confirmedByDevice;
+
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
     public static ConsentRecord create(Family family, ChildProfile child, String documentVersion, String actorType, Long actorId, Instant acknowledgedAt, String permissionState) {
-        return new ConsentRecord(null, family, child, documentVersion, actorType, actorId, acknowledgedAt, permissionState, acknowledgedAt);
+        return new ConsentRecord(null, family, child, documentVersion, actorType, actorId, acknowledgedAt, permissionState, acknowledgedAt, false, null);
+    }
+
+    public void confirmByDevice(Instant confirmedAt) {
+        this.confirmedByDevice = true;
+        this.confirmedAt = confirmedAt;
     }
 }

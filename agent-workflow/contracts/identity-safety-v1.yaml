@@ -1,0 +1,12 @@
+contract: tam-dan-identity-safety
+version: 1.0.0
+transport: in-process-java
+parentContext: {required: [parentId, familyId], excludes: [passwordHash, refreshToken, rawCredential]}
+deviceContext: {required: [deviceId, childProfileId, familyId], excludes: [passwordHash, refreshToken, rawCredential, pairingCode]}
+operations: [resolveParent, resolveDevice, requireChildOwnership, requireActiveDevice]
+failures: [NOT_FOUND, FORBIDDEN, INACTIVE, REVOKED, CHILD_INACTIVE]
+events:
+  DeviceRevocationEvent:
+    required: [deviceId, childProfileId, familyId, revokedAt, reason]
+    delivery: transaction-bound
+    replay: consumers must be idempotent

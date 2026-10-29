@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: Tam Dan API
+  version: 1.1.0
+  description: Versioned public contract for parent clients and authenticated child devices.
+servers:
+  - url: /api/v1
+security:
+  - parentJwt: []
+paths:
+  /auth/register:
+    post:
+      security: []
+      operationId: registerParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RegisterRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /auth/login:
+    post:
+      security: []
+      operationId: loginParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/LoginRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /auth/refresh:
+    post:
+      security: []
+      operationId: refreshParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RefreshRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /auth/logout:
+    post:
+      security: [{parentJwt: []}]
+      operationId: logoutParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RefreshRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /auth/logout-all:
+    post:
+      security: [{parentJwt: []}]
+      operationId: logoutAllParentSessions
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /families/me/children:
+    get:
+      operationId: listChildren
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+    post:
+      operationId: createChild
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ChildRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/pairing-codes:
+    post:
+      operationId: createPairingCode
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+  /pairing/complete:
+    post:
+      security: []
+      operationId: completeDevicePairing
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PairDeviceRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/devices:
+    get:
+      operationId: listDevices
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+  /devices/me/health:
+    x-status: planned
+    put:
+      security: [{deviceCredential: []}]
+      operationId: updateDeviceHealth
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DeviceHealth'}}}}
+      responses: {'204': {description: Accepted}, '401': {$ref: '#/components/responses/Problem'}}
+  /devices/me/activity-events:
+    x-status: planned
+    post:
+      security: [{deviceCredential: []}]
+      operationId: ingestActivity
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BatchEnvelope'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /devices/me/domain-observations:
+    x-status: planned
+    post:
+      security: [{deviceCredential: []}]
+      operationId: ingestDomainObservations
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BatchEnvelope'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /devices/me/policies:
+    x-status: planned
+    get:
+      security: [{deviceCredential: []}]
+      operationId: downloadPolicies
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /devices/me/policies/{policyId}/acknowledgements:
+    x-status: planned
+    post:
+      security: [{deviceCredential: []}]
+      operationId: acknowledgePolicy
+      parameters: [{name: policyId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyAcknowledgement'}}}}
+      responses: {'204': {description: Accepted}, '401': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/reports/usage:
+    x-status: planned
+    get:
+      operationId: getUsageReport
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {name: from, in: query, required: true, schema: {type: string, format: date-time}}, {name: to, in: query, required: true, schema: {type: string, format: date-time}}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}}
+  /families/me/children/{childId}/alerts:
+    x-status: planned
+    get:
+      operationId: listAlerts
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}}
+  /alerts/{alertId}/review:
+    x-status: planned
+    post:
+      operationId: reviewAlert
+      parameters: [{name: alertId, in: path, required: true, schema: {type: integer, format: int64, minimum: 1}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/AlertReview'}}}}
+      responses: {'204': {description: Reviewed}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/policies:
+    x-status: planned
+    get:
+      operationId: listPolicies
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}}
+    post:
+      operationId: createPolicy
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+components:
+  parameters:
+    ChildId: {name: childId, in: path, required: true, schema: {$ref: '#/components/schemas/LongId'}}
+  securitySchemes:
+    parentJwt: {type: http, scheme: bearer, bearerFormat: JWT}
+    deviceCredential: {type: apiKey, in: header, name: X-Device-Credential, description: Credential issued once during device pairing; never log or return it again.}
+  responses:
+    ApiResponse: {description: Tam Dan response envelope, content: {application/json: {schema: {$ref: '#/components/schemas/ApiResponse'}}}}
+    Problem: {description: RFC 7807-compatible error, content: {application/problem+json: {schema: {$ref: '#/components/schemas/Problem'}}}}
+  schemas:
+    LongId: {type: integer, format: int64, minimum: 1}
+    ApiResponse: {type: object, properties: {data: {}}}
+    Problem: {type: object, required: [title, status, code], properties: {type: {type: string, format: uri}, title: {type: string}, status: {type: integer}, code: {type: string}, detail: {type: string}, instance: {type: string}}}
+    RegisterRequest: {type: object, additionalProperties: false, required: [login, email, password], properties: {login: {type: string, pattern: '^[A-Za-z0-9._-]{1,50}$'}, email: {type: string, format: email, maxLength: 254}, password: {type: string, format: password, minLength: 4, maxLength: 100}, firstName: {type: string, maxLength: 50}, lastName: {type: string, maxLength: 50}}}
+    LoginRequest: {type: object, additionalProperties: false, required: [login, password], properties: {login: {type: string, maxLength: 254}, password: {type: string, format: password, minLength: 4, maxLength: 100}}}
+    RefreshRequest: {type: object, additionalProperties: false, required: [refreshToken], properties: {refreshToken: {type: string, minLength: 1, maxLength: 4096}}}
+    ChildRequest: {type: object, additionalProperties: false, required: [displayName], properties: {displayName: {type: string, minLength: 1, maxLength: 100}}}
+    PairDeviceRequest: {type: object, additionalProperties: false, required: [pairingCode, deviceIdentifier, platform, appVersion, displayName, capabilities], properties: {pairingCode: {type: string, minLength: 1, maxLength: 20}, deviceIdentifier: {type: string, minLength: 1, maxLength: 255}, platform: {type: string, minLength: 1, maxLength: 30}, appVersion: {type: string, minLength: 1, maxLength: 30}, displayName: {type: string, minLength: 1, maxLength: 100}, capabilities: {$ref: '#/components/schemas/DeviceCapabilities'}}}
+    DeviceCapabilities: {type: object, additionalProperties: false, properties: {usageObservation: {type: boolean}, domainObservation: {type: boolean}, vpnEnforcement: {type: boolean}, applicationEnforcement: {type: boolean}}}
+    DeviceHealth: {type: object, additionalProperties: false, required: [schemaVersion, reportedAt, monitoringState, syncState], properties: {schemaVersion: {type: string, minLength: 1, maxLength: 30}, reportedAt: {type: string, format: date-time}, monitoringState: {type: string, enum: [ACTIVE, INACTIVE, PERMISSION_DENIED, UNSUPPORTED, FAILED]}, syncState: {type: string, enum: [CURRENT, STALE, OFFLINE, FAILED]}, policyVersion: {type: string, maxLength: 100}, queuedEventCount: {type: integer, minimum: 0, maximum: 100000}}}
+    BatchEnvelope: {type: object, additionalProperties: false, required: [schemaVersion, events], properties: {schemaVersion: {type: string, minLength: 1, maxLength: 30}, events: {type: array, minItems: 1, maxItems: 500, items: {type: object, additionalProperties: false, required: [eventId, occurredAt], properties: {eventId: {type: string, minLength: 1, maxLength: 100}, occurredAt: {type: string, format: date-time}, payload: {type: object, additionalProperties: false}}}}}}
+    PolicyAcknowledgement: {type: object, additionalProperties: false, required: [status, reportedAt], properties: {status: {type: string, enum: [ACTIVE, FAILED, UNSUPPORTED]}, reportedAt: {type: string, format: date-time}, failureReason: {type: string, maxLength: 500}}}
+    PolicyRequest: {type: object, additionalProperties: false, required: [type, target], properties: {type: {type: string, enum: [APPLICATION, GAME, DOMAIN]}, target: {type: string, minLength: 1, maxLength: 255, pattern: '^[^\u0000-\u001F\u007F]+$'}}}
+    AlertReview: {type: object, additionalProperties: false, required: [state], properties: {state: {type: string, enum: [REVIEWED, DISMISSED]}}}

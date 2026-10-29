@@ -10,5 +10,7 @@ public interface ChildDeviceRepository extends JpaRepository<ChildDevice, Long> 
 
     Optional<ChildDevice> findByIdAndChildProfileFamilyId(Long deviceId, Long familyId);
 
+    Optional<ChildDevice> findByIdAndChildProfileIdAndChildProfileFamilyId(Long deviceId, Long childId, Long familyId);
+
     boolean existsByDeviceIdentifierHash(String deviceIdentifierHash);
 }

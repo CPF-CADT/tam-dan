@@ -47,7 +47,7 @@ public class MailService {
     }
 
     private void sendEmailSync(String to, String subject, String content, boolean isMultipart, boolean isHtml) {
-        LOG.debug("Send email[multipart '{}' and html '{}'] to '{}' with subject '{}'", isMultipart, isHtml, to, subject);
+        LOG.debug("Preparing email[multipart '{}' and html '{}']", isMultipart, isHtml);
 
         // Prepare message using a Spring helper
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -58,9 +58,9 @@ public class MailService {
             message.setSubject(subject);
             message.setText(content, isHtml);
             javaMailSender.send(mimeMessage);
-            LOG.debug("Sent email to User '{}'", to);
+            LOG.debug("Email sent successfully");
         } catch (MailException | MessagingException e) {
-            LOG.warn("Email could not be sent to user '{}'", to, e);
+            LOG.warn("Email could not be sent", e);
         }
     }
 
@@ -71,7 +71,7 @@ public class MailService {
 
     private void sendEmailFromTemplateSync(User user, String templateName, String titleKey) {
         if (user.getEmail() == null) {
-            LOG.debug("Email doesn't exist for user '{}'", user.getLogin());
+            LOG.debug("Email does not exist for user");
             return;
         }
         Locale locale = Locale.forLanguageTag(user.getLangKey());
@@ -85,19 +85,19 @@ public class MailService {
 
     @Async
     public void sendActivationEmail(User user) {
-        LOG.debug("Sending activation email to '{}'", user.getEmail());
+        LOG.debug("Sending activation email");
         sendEmailFromTemplateSync(user, "mail/activationEmail", "email.activation.title");
     }
 
     @Async
     public void sendCreationEmail(User user) {
-        LOG.debug("Sending creation email to '{}'", user.getEmail());
+        LOG.debug("Sending creation email");
         sendEmailFromTemplateSync(user, "mail/creationEmail", "email.activation.title");
     }
 
     @Async
     public void sendPasswordResetMail(User user) {
-        LOG.debug("Sending password reset email to '{}'", user.getEmail());
+        LOG.debug("Sending password reset email");
         sendEmailFromTemplateSync(user, "mail/passwordResetEmail", "email.reset.title");
     }
 }

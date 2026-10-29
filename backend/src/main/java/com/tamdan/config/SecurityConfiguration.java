@@ -13,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 
@@ -26,7 +28,22 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, DeviceAuthenticationFilter deviceAuthenticationFilter) {
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        var authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        authoritiesConverter.setAuthoritiesClaimName(SecurityUtils.AUTHORITIES_CLAIM);
+        authoritiesConverter.setAuthorityPrefix("");
+
+        var authenticationConverter = new JwtAuthenticationConverter();
+        authenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        return authenticationConverter;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(
+        HttpSecurity http,
+        DeviceAuthenticationFilter deviceAuthenticationFilter,
+        JwtAuthenticationConverter jwtAuthenticationConverter
+    ) {
         http.cors(withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz ->
@@ -46,6 +63,11 @@ public class SecurityConfiguration {
                     .requestMatchers("/api/account/**", "/api/family/**", "/api/children/**", "/api/pairing-codes/**", "/api/audit/**", "/api/devices/**")
                     .hasAnyAuthority(AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN)
                     .requestMatchers(HttpMethod.POST, "/api/authenticate/logout-all").hasAnyAuthority(AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN)
+                    .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/pairing/complete").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").hasAnyAuthority(AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN)
+                    .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout-all").hasAnyAuthority(AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/api/v1/devices/me/**").hasAuthority(AuthoritiesConstants.DEVICE)
+                    .requestMatchers("/api/v1/families/me/**").hasAnyAuthority(AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN)
                     .requestMatchers("/api/consent/device", "/api/events/**", "/api/policies/**").hasAuthority(AuthoritiesConstants.DEVICE)
                     .requestMatchers("/api/**").hasAnyAuthority(AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN, AuthoritiesConstants.DEVICE)
                     .requestMatchers("/v3/api-docs/**").permitAll()
@@ -62,7 +84,7 @@ public class SecurityConfiguration {
                     .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
                     .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
             )
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
         http.addFilterBefore(deviceAuthenticationFilter, BearerTokenAuthenticationFilter.class);
         return http.build();
     }

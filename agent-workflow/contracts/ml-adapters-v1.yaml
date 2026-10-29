@@ -1,0 +1,13 @@
+contracts:
+  domain-classification-v1:
+    request: [schemaVersion, correlationId, normalizedDomain]
+    response: [status, category, confidence, modelVersion, taxonomyVersion]
+  public-content-classification-v1:
+    request: [schemaVersion, correlationId, sanitizedText, language]
+    response: [status, labels, confidence, modelVersion, taxonomyVersion]
+statuses: [SAFE, CAUTION, BLOCKED, UNKNOWN, UNAVAILABLE]
+rules:
+  - inaccessible content never becomes SAFE
+  - invalid or low-confidence responses become UNKNOWN
+  - external calls require bounded timeout and response validation
+  - cache keys include normalized input, contract version, and model version
