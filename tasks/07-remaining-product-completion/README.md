@@ -497,7 +497,7 @@ No task may start until its requirements reference, approved contract version, b
 
 ### 8. Approval record
 
-Current state: `WAITING FOR USER APPROVAL`.
+Current state: `REQUIREMENTS-APPROVED` by the user message `process with multiple agent` on 2026-10-29.
 
 Approval must explicitly confirm:
 
@@ -507,4 +507,4 @@ Approval must explicitly confirm:
 - the task order and isolated workstreams;
 - permission to create task records and begin planning only.
 
-Until approval is recorded, agents must not implement application features.
+The coordinator may create task records and dispatch the approved planning/implementation work under the gates above. API changes still require a separately approved OpenAPI revision.
