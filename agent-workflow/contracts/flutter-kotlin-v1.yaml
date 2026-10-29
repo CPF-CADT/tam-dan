@@ -1,0 +1,12 @@
+contract: tam-dan-flutter-kotlin
+version: 1.0.0
+channel: com.tamdan/monitoring_v1
+codec: StandardMethodCodec
+methods: [getPermissionStatus, requestVpnPermission, startMonitoring, stopMonitoring, getMonitoringStatus, getSyncStatus, getPolicyStatus, retrySynchronization, getCapabilities]
+eventChannel: com.tamdan/monitoring_events_v1
+events: [monitoring_status, sync_status, policy_status, native_error]
+statuses: [PENDING, ACTIVE, FAILED, UNSUPPORTED]
+errors: [UNAVAILABLE, TIMEOUT, PERMISSION_DENIED, AUTHENTICATION_FAILED, NETWORK_ERROR, NATIVE_ERROR]
+envelope:
+  required: [contractVersion, type, observedAt]
+  properties: {contractVersion: string, type: string, observedAt: date-time, data: object, error: object}

@@ -2,7 +2,7 @@
 
 - ID: `00-coordinator-workflow`
 - Role: `coordinator`
-- State: `requirements-and-contracts-pending`
+- State: `implementation-ready`
 - Branch: `codex/coordinator`
 - Requirements approval: Figma prototype reviewed; product requirements and API contract remain required gates
 - OpenAPI approval: `pending`
@@ -26,7 +26,7 @@ Manage the Tam Dan development tasks across isolated role branches. Do not imple
 
 Planning and UI Design completed read-only review. Their results are recorded in `01-planning-result.md` and `02-ui-design-result.md`.
 
-The full implementation audit is recorded in `03-implementation-audit.md`. Contract defaults are proposed in `04-contract-decisions.md`.
+The full implementation audit is recorded in `03-implementation-audit.md`. Contract decisions are approved in `04-contract-decisions.md` and versioned under `agent-workflow/contracts/`.
 
 No implementation agent may start until the outstanding approval items in those results are resolved.
 

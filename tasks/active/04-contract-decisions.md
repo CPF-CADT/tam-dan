@@ -1,8 +1,8 @@
 # Contract decision proposal
 
-Status: `proposed — requires coordinator/product approval`
+Status: `approved — coordinator approval received`
 
-These defaults are proposed to unblock implementation while preserving the PRD rules. They are not approved contracts yet.
+These approved defaults unblock implementation while preserving the PRD rules. The versioned contract artifacts are in `agent-workflow/contracts/`.
 
 ## Public API
 

@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: Tam Dan API
+  version: 1.0.0
+  description: Versioned public contract for parent clients and authenticated child devices.
+servers:
+  - url: /api/v1
+security:
+  - parentJwt: []
+paths:
+  /auth/register:
+    post:
+      security: []
+      operationId: registerParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RegisterRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /auth/login:
+    post:
+      security: []
+      operationId: loginParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/LoginRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /auth/refresh:
+    post:
+      security: []
+      operationId: refreshParent
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RefreshRequest'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /families/me/children:
+    get:
+      operationId: listChildren
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+    post:
+      operationId: createChild
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ChildRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/pairing-codes:
+    post:
+      operationId: createPairingCode
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+  /devices/pair:
+    post:
+      security: []
+      operationId: pairDevice
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PairDeviceRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/devices:
+    get:
+      operationId: listDevices
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '404': {$ref: '#/components/responses/Problem'}}
+  /devices/me/health:
+    put:
+      security: [{deviceCredential: []}]
+      operationId: updateDeviceHealth
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DeviceHealth'}}}}
+      responses: {'204': {description: Accepted}, '401': {$ref: '#/components/responses/Problem'}}
+  /devices/me/activity-events:
+    post:
+      security: [{deviceCredential: []}]
+      operationId: ingestActivity
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BatchEnvelope'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /devices/me/domain-observations:
+    post:
+      security: [{deviceCredential: []}]
+      operationId: ingestDomainObservations
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/BatchEnvelope'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+  /devices/me/policies:
+    get:
+      security: [{deviceCredential: []}]
+      operationId: downloadPolicies
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}, '401': {$ref: '#/components/responses/Problem'}}
+  /devices/me/policies/{policyId}/acknowledgements:
+    post:
+      security: [{deviceCredential: []}]
+      operationId: acknowledgePolicy
+      parameters: [{name: policyId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyAcknowledgement'}}}}
+      responses: {'204': {description: Accepted}, '401': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/reports/usage:
+    get:
+      operationId: getUsageReport
+      parameters: [{'$ref': '#/components/parameters/ChildId'}, {name: from, in: query, required: true, schema: {type: string, format: date-time}}, {name: to, in: query, required: true, schema: {type: string, format: date-time}}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}}
+  /families/me/children/{childId}/alerts:
+    get:
+      operationId: listAlerts
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}}
+  /alerts/{alertId}/review:
+    post:
+      operationId: reviewAlert
+      parameters: [{name: alertId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/AlertReview'}}}}
+      responses: {'204': {description: Reviewed}, '404': {$ref: '#/components/responses/Problem'}}
+  /families/me/children/{childId}/policies:
+    get:
+      operationId: listPolicies
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiResponse'}}
+    post:
+      operationId: createPolicy
+      parameters: [{'$ref': '#/components/parameters/ChildId'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PolicyRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/ApiResponse'}, '400': {$ref: '#/components/responses/Problem'}}
+components:
+  parameters:
+    ChildId: {name: childId, in: path, required: true, schema: {type: string, format: uuid}}
+  securitySchemes:
+    parentJwt: {type: http, scheme: bearer, bearerFormat: JWT}
+    deviceCredential: {type: http, scheme: bearer, bearerFormat: DeviceCredential}
+  responses:
+    ApiResponse: {description: Tam Dan response envelope, content: {application/json: {schema: {$ref: '#/components/schemas/ApiResponse'}}}}
+    Problem: {description: RFC 7807-compatible error, content: {application/problem+json: {schema: {$ref: '#/components/schemas/Problem'}}}}
+  schemas:
+    ApiResponse: {type: object, properties: {data: {}}}
+    Problem: {type: object, required: [title, status, code], properties: {type: {type: string, format: uri}, title: {type: string}, status: {type: integer}, code: {type: string}, detail: {type: string}, instance: {type: string}}}
+    RegisterRequest: {type: object, required: [email, password], properties: {email: {type: string, format: email}, password: {type: string, format: password}}}
+    LoginRequest: {type: object, required: [email, password], properties: {email: {type: string, format: email}, password: {type: string, format: password}}}
+    RefreshRequest: {type: object, required: [refreshToken], properties: {refreshToken: {type: string}}}
+    ChildRequest: {type: object, required: [displayName], properties: {displayName: {type: string, minLength: 1, maxLength: 100}}}
+    PairDeviceRequest: {type: object, required: [pairingCode, deviceName, platform], properties: {pairingCode: {type: string}, deviceName: {type: string}, platform: {type: string}}}
+    DeviceHealth: {type: object, required: [schemaVersion, reportedAt, monitoringState, syncState], properties: {schemaVersion: {type: string}, reportedAt: {type: string, format: date-time}, monitoringState: {type: string}, syncState: {type: string}, policyVersion: {type: string}, queuedEventCount: {type: integer, minimum: 0}}}
+    BatchEnvelope: {type: object, required: [schemaVersion, events], properties: {schemaVersion: {type: string}, events: {type: array, items: {type: object, additionalProperties: true}}}}
+    PolicyAcknowledgement: {type: object, required: [status, reportedAt], properties: {status: {type: string, enum: [ACTIVE, FAILED, UNSUPPORTED]}, reportedAt: {type: string, format: date-time}, failureReason: {type: string}}}
+    PolicyRequest: {type: object, required: [type, target], properties: {type: {type: string, enum: [APPLICATION, GAME, DOMAIN]}, target: {type: string}}}
+    AlertReview: {type: object, required: [state], properties: {state: {type: string, enum: [REVIEWED, DISMISSED]}}}
