@@ -25,7 +25,7 @@ enum PermissionState { unknown, granted, denied, unavailable }
 
 enum MonitoringState { active, inactive, permissionDenied, unsupported, failed }
 
-enum SyncState { current, stale, offline, failed }
+enum SyncState { current, stale, offline, failed, unsupported }
 
 enum ChildPolicyState { pending, active, failed, unsupported }
 
@@ -71,6 +71,13 @@ class ChildHealth {
   final DateTime observedAt;
   final String? policyVersion;
   final int queuedEventCount;
+
+  const ChildHealth.unsupported(DateTime observedAt)
+    : this(
+        monitoring: MonitoringState.unsupported,
+        sync: SyncState.unsupported,
+        observedAt: observedAt,
+      );
 }
 
 class ChildPolicy {

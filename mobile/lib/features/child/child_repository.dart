@@ -1,4 +1,5 @@
 import '../../core/network/api_client.dart';
+import 'child_health.dart';
 import 'child_models.dart';
 
 abstract interface class ChildDeviceStore {
@@ -63,9 +64,14 @@ abstract interface class ChildRepository {
 }
 
 class HttpChildRepository implements ChildRepository {
-  HttpChildRepository(this._api, this._store);
+  HttpChildRepository(
+    this._api,
+    this._store, {
+    ChildHealthProvider? healthProvider,
+  }) : _healthProvider = healthProvider ?? AndroidChildHealthProvider();
   final ApiClient _api;
   final ChildDeviceStore _store;
+  final ChildHealthProvider _healthProvider;
 
   String _text(String value, String field, int max) {
     final normalized = value.trim();
@@ -163,17 +169,7 @@ class HttpChildRepository implements ChildRepository {
   }
 
   @override
-  Future<ChildHealth> getHealth() async {
-    final response = await _deviceSend('GET', '/devices/me/health');
-    final data = response['data'] as Map<String, dynamic>;
-    return ChildHealth(
-      monitoring: _monitoring(data['monitoringState'] as String?),
-      sync: _sync(data['syncState'] as String?),
-      observedAt: DateTime.parse(data['observedAt'] as String).toUtc(),
-      policyVersion: data['policyVersion'] as String?,
-      queuedEventCount: data['queuedEventCount'] as int? ?? 0,
-    );
-  }
+  Future<ChildHealth> getHealth() => _healthProvider.readHealth();
 
   @override
   Future<List<ChildPolicy>> getPolicies() async {
@@ -194,21 +190,6 @@ class HttpChildRepository implements ChildRepository {
 
   @override
   Future<void> clearDevice() => _store.clearProtectedState();
-
-  MonitoringState _monitoring(String? value) => switch (value) {
-    'ACTIVE' => MonitoringState.active,
-    'INACTIVE' => MonitoringState.inactive,
-    'PERMISSION_DENIED' => MonitoringState.permissionDenied,
-    'UNSUPPORTED' => MonitoringState.unsupported,
-    _ => MonitoringState.failed,
-  };
-
-  SyncState _sync(String? value) => switch (value) {
-    'CURRENT' => SyncState.current,
-    'STALE' => SyncState.stale,
-    'OFFLINE' => SyncState.offline,
-    _ => SyncState.failed,
-  };
 
   ChildPolicyState _policyState(String? value) => switch (value) {
     'PENDING' => ChildPolicyState.pending,
