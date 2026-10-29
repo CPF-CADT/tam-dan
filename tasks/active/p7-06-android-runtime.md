@@ -5,7 +5,7 @@
 - State: `ready`
 - Branch/worktree: isolated Android worktree, branch prefix `codex/p7-android-runtime`
 - Requirements approval: `tasks/07-remaining-product-completion/README.md`, approved 2026-10-29
-- OpenAPI approval: `v1.1.0`; no API changes
+- OpenAPI approval: `v1.2.0`, approved 2026-10-29; no contract changes in this task
 - Figma/design approval: not applicable
 - Dependencies: `P7-01`, `P7-04` for platform state contract
 

@@ -2,10 +2,10 @@
 
 - ID: `P7-02`
 - Role: `backend-development`
-- State: `ready`
+- State: `in-progress`
 - Branch/worktree: isolated backend worktree, branch prefix `codex/p7-backend-identity-device`
 - Requirements approval: `tasks/07-remaining-product-completion/README.md`, approved 2026-10-29
-- OpenAPI approval: `v1.1.0`; no API changes without a new approved contract
+- OpenAPI approval: `v1.2.0`, approved 2026-10-29
 - Figma/design approval: not applicable
 - Dependencies: `P7-01` for gap confirmation; may use existing v1.1.0 routes immediately
 

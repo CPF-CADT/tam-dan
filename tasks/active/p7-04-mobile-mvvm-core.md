@@ -1,17 +1,17 @@
-# Task: PRD 7 Flutter MVVM parent and child core journeys
+# Task: PRD 7 Flutter MVVM parent core journeys
 
 - ID: `P7-04`
 - Role: `mobile-development`
-- State: `ready`
+- State: `in-progress`
 - Branch/worktree: isolated mobile worktree, branch prefix `codex/p7-mobile-mvvm-core`
 - Requirements approval: `tasks/07-remaining-product-completion/README.md`, approved 2026-10-29
-- OpenAPI approval: `v1.1.0`; use only approved routes and payloads
+- OpenAPI approval: `v1.2.0`, approved 2026-10-29
 - Figma/design approval: `tasks/active/02-ui-design-result.md` and approved Figma handoff
 - Dependencies: `P7-01`; backend API availability may be mocked only in unit tests
 
 ## Scope
 
-Implement the Flutter MVVM foundation and core parent/child journeys: authentication/session recovery, family/child selection, device list/pairing state, consent, permission guidance, monitoring/synchronization status, and clear loading/empty/offline/stale/error/unauthorized/unsupported states. Do not call HTTP or platform channels from widgets.
+Implement the Flutter MVVM foundation and parent journeys: authentication/session recovery, family/child selection, device list/pairing state, reports, alerts, policies, and clear loading/empty/offline/stale/error/unauthorized/unsupported states. Do not call HTTP or platform channels from widgets. Child journeys belong to P7-05.
 
 ## Acceptance criteria
 
@@ -34,6 +34,6 @@ flutter test
 
 ## Handoff
 
-- Changed files: `mobile/lib`, Flutter tests, and approved UI assets only
+- Changed files: `mobile/lib/features/parent/**`, shared MVVM/client infrastructure, Flutter tests, and approved UI assets only
 - Risks/compatibility: do not edit backend or Android implementation; contract changes require coordinator approval
 - Review status: pending

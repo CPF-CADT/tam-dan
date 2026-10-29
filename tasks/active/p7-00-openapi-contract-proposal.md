@@ -2,10 +2,10 @@
 
 - ID: `P7-00`
 - Role: `planning`
-- State: `complete-awaiting-approval`
+- State: `approved`
 - Branch/worktree: isolated contract-documentation worktree, branch prefix `codex/p7-openapi-contract`
 - Requirements approval: `tasks/07-remaining-product-completion/README.md`, approved 2026-10-29
-- OpenAPI approval: current baseline `v1.1.0`; proposed revision must be reviewed before implementation
+- OpenAPI approval: `v1.2.0`, approved by user message `ok aprove` on 2026-10-29
 - Figma/design approval: existing approved UI decisions only
 - Dependencies: `P7-01` complete
 

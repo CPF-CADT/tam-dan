@@ -2,7 +2,8 @@
 
 ## Status
 
-- State: `draft-awaiting-approval`
+- State: `CONTRACT-APPROVED`
+- Approved contract: OpenAPI `v1.2.0`, `agent-workflow/contracts/openapi-v1.2.0-proposal.yaml`.
 - Priority: `P1` after integration hardening
 - Owner: coordinator
 - Depends on: approved OpenAPI v1.1.0, PRD 6 hardening, native PostgreSQL, Android emulator/device
@@ -497,7 +498,7 @@ No task may start until its requirements reference, approved contract version, b
 
 ### 8. Approval record
 
-Current state: `REQUIREMENTS-APPROVED` by the user message `process with multiple agent` on 2026-10-29.
+Current state: `CONTRACT-APPROVED` by the user message `ok aprove` on 2026-10-29.
 
 Approval must explicitly confirm:
 
@@ -507,4 +508,4 @@ Approval must explicitly confirm:
 - the task order and isolated workstreams;
 - permission to create task records and begin planning only.
 
-The coordinator may create task records and dispatch the approved planning/implementation work under the gates above. API changes still require a separately approved OpenAPI revision.
+The coordinator may dispatch the approved planning and implementation work under the gates above. Integration Review remains mandatory before merge.
