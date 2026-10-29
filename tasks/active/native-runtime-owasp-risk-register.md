@@ -37,6 +37,13 @@ Revisions reviewed: backend `ca17cde` (security fixes from `871ad14`), mobile/An
 
 Disposition: `needs-fix` / security evidence remains incomplete. Feature and native runtime verification passed; no merge or deployment approval is implied.
 
+## PRD 8 closure review — 2026-10-29
+
+- S3 mobile evidence is now reproducible on clean branch `codex/mobile-testing-s3`, based on implementation `c4e69e8`; evidence commit `d9dfc2c2efcd4c6eb8ec7f43186304392028605d`. Flutter analysis, 14 Flutter tests, 2 emulator integration tests, Kotlin compilation, and debug assembly passed. Logs: `/tmp/tamdan-prd8-s3-mobile-testing/`.
+- S1 remains blocked: OWASP Dependency-Check failed before analysis because the NVD API key was empty. No vulnerability result is claimed. Log: `/tmp/tamdan-prd8-s1-dependency-check.log`.
+- S2 remains blocked: production secret injection, fail-closed missing-secret behavior, deployment profile protection, and operational log review are not evidenced. Production-profile probe log: `/tmp/prd8-s2-prod-startup-without-secret-v2.log`.
+- Final disposition remains `NEEDS-FIX`. Required next actions are an approved vulnerability evidence source or explicit expiring release-owner risk acceptance, production configuration evidence, and a final Integration Review.
+
 ## Evidence
 
 | Check | Exact command | Result |

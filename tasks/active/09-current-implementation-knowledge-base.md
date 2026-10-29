@@ -87,6 +87,18 @@ Backend test evidence: `cb13b55`, based on backend implementation `9795ee3`.
 
 Remaining security evidence: a vulnerability scan with NVD data/API configuration and final production configuration review. Maven dependency inventory passed, and the fallback repository secret scan returned no matches on backend `ca17cde`.
 
+## PRD 8 security-evidence execution — 2026-10-29
+
+PRD: [08-security-evidence-completion](../08-security-evidence-completion/README.md). Native tooling only; Docker was not used.
+
+- Backend dependency inventory passed at `ca17cdea9e2e42e5803a8c39cc7f7d0f5ad2bb59`; report `/tmp/tamdan-prd8-s1-backend-dependencies.txt` and log `/tmp/tamdan-prd8-s1-backend-inventory.log`.
+- Flutter and Android dependency inventories passed at mobile runtime `c4e69e8b73b34c94b2eac1b8fba4e6bce26bfeaf`; logs `/tmp/tamdan-prd8-s1-flutter-dependencies.log` and `/tmp/tamdan-prd8-s1-android-dependencies.log`.
+- OWASP Dependency-Check 13.0.0 exited `1` because the NVD API key was empty; this is no vulnerability result. Log: `/tmp/tamdan-prd8-s1-dependency-check.log`.
+- Backend fallback secret scan and focused redaction/configuration tests passed; logs `/tmp/prd8-s2-backend-secret-scan.log`, `/tmp/prd8-s2-mobile-secret-scan.log`, and `/tmp/prd8-s2-backend-targeted-tests.log`.
+- Production profile selection was observed, but production secret injection, fail-closed missing-secret behavior, deployment profile defaults, and operational log review remain unverified. Log: `/tmp/prd8-s2-prod-startup-without-secret-v2.log`.
+- Mobile S3 evidence was rerun on clean branch `codex/mobile-testing-s3` descended from `c4e69e8`; evidence commit `d9dfc2c2efcd4c6eb8ec7f43186304392028605d`. Flutter analysis, 14 Flutter tests, 2 emulator integration tests, Kotlin compilation, and debug assembly passed. Logs: `/tmp/tamdan-prd8-s3-mobile-testing/`.
+- Final Integration Review disposition: `NEEDS-FIX`. No merge or deployment approval.
+
 ## Known blockers
 
 1. The primary verification environment must use native PostgreSQL; Docker/Testcontainers is optional CI infrastructure, not the developer path.
