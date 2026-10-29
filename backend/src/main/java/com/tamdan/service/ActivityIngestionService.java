@@ -1,6 +1,5 @@
 package com.tamdan.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tamdan.dto.SafetyDto.ActivityBatchRequest;
 import com.tamdan.dto.SafetyDto.EventRequest;
 import com.tamdan.dto.SafetyDto.IngestionResultResponse;
@@ -14,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +59,7 @@ public class ActivityIngestionService {
         }
     }
 
-    private String normalizePayload(com.fasterxml.jackson.databind.JsonNode payload) {
+    private String normalizePayload(JsonNode payload) {
         if (payload == null || payload.isNull()) return "{}";
         try {
             if (!payload.isObject()) throw new BadRequestException("Event payload must be a JSON object");

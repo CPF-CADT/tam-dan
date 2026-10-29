@@ -3,7 +3,6 @@ package com.tamdan.dto;
 import com.tamdan.entities.PolicyDelivery;
 import com.tamdan.entities.SafetyAlert;
 import com.tamdan.entities.SafetyPolicy;
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
@@ -14,6 +13,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.List;
+import tools.jackson.databind.JsonNode;
 
 public final class SafetyDto {
     private SafetyDto() {}
