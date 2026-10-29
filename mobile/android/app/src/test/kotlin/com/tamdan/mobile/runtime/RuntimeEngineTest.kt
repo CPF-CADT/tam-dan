@@ -49,6 +49,13 @@ class RuntimeEngineTest {
     }
 
     @Test
+    fun deviceIdentityRulesAcceptOnlyUuidIdentifiers() {
+        assertTrue(DeviceIdentityRules.isValidIdentifier("123e4567-e89b-12d3-a456-426614174000"))
+        assertFalse(DeviceIdentityRules.isValidIdentifier("flutter-device"))
+        assertFalse(DeviceIdentityRules.isValidIdentifier("android-id-should-not-be-exposed"))
+    }
+
+    @Test
     fun eventStoreIsBoundedIdempotentAndValidatesPayload() {
         val persistence = MemoryPersistence()
         var now = 1_000_000L

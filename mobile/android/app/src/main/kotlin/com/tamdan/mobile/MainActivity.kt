@@ -10,16 +10,19 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import com.tamdan.mobile.runtime.CapabilityMatrix
 import com.tamdan.mobile.runtime.DeviceCredentialStore
+import com.tamdan.mobile.runtime.DeviceIdentityStore
 import com.tamdan.mobile.runtime.MonitoringEngine
 import com.tamdan.mobile.runtime.PermissionGateway
 
 class MainActivity : FlutterActivity() {
     private lateinit var monitoringEngine: MonitoringEngine
     private lateinit var credentialStore: DeviceCredentialStore
+    private lateinit var identityStore: DeviceIdentityStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         credentialStore = DeviceCredentialStore(applicationContext)
+        identityStore = DeviceIdentityStore(applicationContext)
         monitoringEngine = MonitoringEngine(AndroidPermissionGateway(this))
     }
 
@@ -28,6 +31,15 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "getDeviceIdentity" -> {
+                        val identity = identityStore.readOrCreate()
+                        result.success(
+                            mapOf(
+                                "identifier" to identity.identifier,
+                                "platform" to identity.platform,
+                            ),
+                        )
+                    }
                     "getCapabilities" -> result.success(capabilitiesMap(monitoringEngine.getCapabilities()))
                     "getStatus" -> result.success(statusMap(monitoringEngine.getStatus()))
                     "startMonitoring" -> result.success(statusMap(monitoringEngine.startMonitoring().getOrThrow()))
