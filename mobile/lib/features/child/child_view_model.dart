@@ -1,21 +1,25 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/network/api_client.dart';
+import 'device_identity.dart';
 import 'child_models.dart';
 import 'child_repository.dart';
 
 class ChildViewModel extends ChangeNotifier {
-  ChildViewModel(this._repository, this._store);
+  ChildViewModel(
+    this._repository,
+    this._store, {
+    DeviceIdentityProvider? identityProvider,
+  }) : _identityProvider = identityProvider ?? AndroidDeviceIdentityProvider();
   final ChildRepository _repository;
   final ChildDeviceStore _store;
+  final DeviceIdentityProvider _identityProvider;
   PairingState pairingState = PairingState.idle;
   String? pairingError;
   ChildStatusState state = const ChildStatusState();
 
   Future<void> pair({
     required String code,
-    required String deviceIdentifier,
-    required String platform,
     required String appVersion,
     required String displayName,
   }) async {
@@ -23,10 +27,11 @@ class ChildViewModel extends ChangeNotifier {
     pairingState = PairingState.submitting;
     notifyListeners();
     try {
+      final identity = await _identityProvider.readIdentity();
       state = await _repository.completePairing(
         pairingCode: code,
-        deviceIdentifier: deviceIdentifier,
-        platform: platform,
+        deviceIdentifier: identity.identifier,
+        platform: identity.platform,
         appVersion: appVersion,
         displayName: displayName,
       );

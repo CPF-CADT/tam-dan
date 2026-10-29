@@ -55,8 +55,6 @@ class _ChildSetupScreenState extends State<ChildSetupScreen> {
                 ? null
                 : () => widget.viewModel.pair(
                     code: _code.text,
-                    deviceIdentifier: 'flutter-device',
-                    platform: 'ANDROID',
                     appVersion: '1.0.0',
                     displayName: _name.text,
                   ),
