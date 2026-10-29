@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 enum PairingState {
   idle,
   submitting,
@@ -78,6 +80,22 @@ class ChildHealth {
         sync: SyncState.unsupported,
         observedAt: observedAt,
       );
+
+  Map<String, dynamic> toJson() => {
+    'monitoring': monitoring.name,
+    'sync': sync.name,
+    'observedAt': observedAt.toIso8601String(),
+    'policyVersion': policyVersion,
+    'queuedEventCount': queuedEventCount,
+  };
+
+  static ChildHealth fromJson(Map<String, dynamic> json) => ChildHealth(
+    monitoring: MonitoringState.values.byName(json['monitoring'] as String),
+    sync: SyncState.values.byName(json['sync'] as String),
+    observedAt: DateTime.parse(json['observedAt'] as String),
+    policyVersion: json['policyVersion'] as String?,
+    queuedEventCount: json['queuedEventCount'] as int? ?? 0,
+  );
 }
 
 class ChildPolicy {
@@ -92,6 +110,20 @@ class ChildPolicy {
   final int version;
   final String target;
   final ChildPolicyState state;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'version': version,
+    'target': target,
+    'state': state.name,
+  };
+
+  static ChildPolicy fromJson(Map<String, dynamic> json) => ChildPolicy(
+    id: json['id'] as int,
+    version: json['version'] as int,
+    target: json['target'] as String,
+    state: ChildPolicyState.values.byName(json['state'] as String),
+  );
 }
 
 class ChildStatusState {
@@ -114,6 +146,48 @@ class ChildStatusState {
   final PermissionState permission;
   final String? error;
   final bool isLastKnown;
+
+  String toJson() => jsonEncode({
+    'status': status.name,
+    'health': health?.toJson(),
+    'policies': policies.map((policy) => policy.toJson()).toList(),
+    'consent': consent == null
+        ? null
+        : {
+            'version': consent!.version,
+            'decision': consent!.decision.name,
+            'decidedAt': consent!.decidedAt.toIso8601String(),
+            'confirmedByDevice': consent!.confirmedByDevice,
+          },
+    'permission': permission.name,
+    'isLastKnown': isLastKnown,
+  });
+
+  static ChildStatusState fromJson(String value) {
+    final json = jsonDecode(value) as Map<String, dynamic>;
+    final health = json['health'] as Map<String, dynamic>?;
+    final consent = json['consent'] as Map<String, dynamic>?;
+    return ChildStatusState(
+      status: ChildLoadStatus.values.byName(json['status'] as String),
+      health: health == null ? null : ChildHealth.fromJson(health),
+      policies: (json['policies'] as List<dynamic>)
+          .cast<Map<String, dynamic>>()
+          .map(ChildPolicy.fromJson)
+          .toList(growable: false),
+      consent: consent == null
+          ? null
+          : ChildConsent(
+              version: consent['version'] as String,
+              decision: ConsentDecision.values.byName(
+                consent['decision'] as String,
+              ),
+              decidedAt: DateTime.parse(consent['decidedAt'] as String),
+              confirmedByDevice: consent['confirmedByDevice'] as bool,
+            ),
+      permission: PermissionState.values.byName(json['permission'] as String),
+      isLastKnown: json['isLastKnown'] as bool? ?? true,
+    );
+  }
 
   ChildStatusState copyWith({
     ChildLoadStatus? status,

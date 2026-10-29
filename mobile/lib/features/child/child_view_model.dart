@@ -18,6 +18,8 @@ class ChildViewModel extends ChangeNotifier {
   String? pairingError;
   ChildStatusState state = const ChildStatusState();
 
+  Future<ChildDeviceContext?> readStoredDevice() => _store.readDevice();
+
   Future<void> pair({
     required String code,
     required String appVersion,

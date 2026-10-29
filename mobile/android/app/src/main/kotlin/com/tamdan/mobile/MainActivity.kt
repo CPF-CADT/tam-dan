@@ -40,12 +40,57 @@ class MainActivity : FlutterActivity() {
                             ),
                         )
                     }
+                    "readSecureValue" -> result.success(
+                        credentialStore.readValue(call.argument<String>("key") ?: error("key is required")),
+                    )
+                    "writeSecureValue" -> {
+                        credentialStore.saveValue(
+                            call.argument<String>("key") ?: error("key is required"),
+                            call.argument<String>("value") ?: error("value is required"),
+                        )
+                        result.success(null)
+                    }
+                    "clearSecureStorage" -> {
+                        credentialStore.clear()
+                        result.success(null)
+                    }
+                    "clearChildDeviceContext" -> {
+                        credentialStore.clearChildDeviceContext()
+                        result.success(null)
+                    }
                     "getCapabilities" -> result.success(capabilitiesMap(monitoringEngine.getCapabilities()))
                     "getStatus" -> result.success(statusMap(monitoringEngine.getStatus()))
                     "startMonitoring" -> result.success(statusMap(monitoringEngine.startMonitoring().getOrThrow()))
                     "stopMonitoring" -> result.success(statusMap(monitoringEngine.stopMonitoring().getOrThrow()))
                     "clearDeviceContext" -> {
                         credentialStore.clear()
+                        result.success(null)
+                    }
+                    "readChildPairing" -> result.success(credentialStore.readChildPairing())
+                    "writeChildPairing" -> {
+                        val args = call.arguments as? Map<*, *> ?: error("invalid pairing")
+                        credentialStore.saveChildPairing(
+                            args["credential"] as String,
+                            (args["deviceId"] as Number).toLong(),
+                            (args["childId"] as Number).toLong(),
+                            args["displayName"] as String,
+                            args["platform"] as String,
+                        )
+                        result.success(null)
+                    }
+                    "readChildState" -> result.success(credentialStore.readChildState())
+                    "writeChildState" -> result.success(credentialStore.saveChildState(call.arguments as String))
+                    "readSession" -> result.success(credentialStore.readSession())
+                    "writeSession" -> {
+                        val args = call.arguments as? Map<*, *> ?: error("invalid session")
+                        credentialStore.saveSession(
+                            args["accessToken"] as String,
+                            args["refreshToken"] as String,
+                        )
+                        result.success(null)
+                    }
+                    "clearSession" -> {
+                        credentialStore.clearSession()
                         result.success(null)
                     }
                     "openUsageAccessSettings" -> {
@@ -56,6 +101,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
     }
+
 
     override fun onResume() {
         super.onResume()
