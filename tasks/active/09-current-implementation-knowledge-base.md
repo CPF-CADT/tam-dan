@@ -77,7 +77,7 @@ Backend test evidence: `cb13b55`, based on backend implementation `9795ee3`.
 
 - Backend canonical native-runtime commit: `ca17cde` (security fixes from `871ad14`).
 - Native PostgreSQL: reachable with role/database `tamdan`.
-- Backend `./mvnw verify`: passed; 75 unit tests and 110 integration tests, zero failures/errors.
+- Backend `./mvnw verify`: passed; 77 unit tests and 111 integration tests, zero failures/errors.
 - Backend log: `/tmp/tamdan-verify-final-rerun.log`.
 - Final corrected backend logs: `/tmp/tamdan-corrected-test.log`, `/tmp/tamdan-corrected-verify.log`, `/tmp/tamdan-corrected-liquibase-validate.log`.
 - Android emulator: `emulator-5554` reported `device`.

@@ -33,7 +33,7 @@ Disposition: `needs-fix` / security evidence remains incomplete. Feature and nat
 | R-01 / A06 Vulnerable Components | High | Dependency inventory passed, but Dependency-Check could not update NVD data because the API key was missing; dedicated scanners were unavailable. | Security/release | **Blocked evidence**. Configure NVD API/cache and rerun vulnerability audits. |
 | R-02 / A02 Cryptographic Failures | Medium | Runtime sample credentials were replaced with environment references in `ca17cde`; fallback repository scan produced no credential matches. | Backend/security | **Mitigated in code; dedicated scanner pending**. |
 | R-03 / A09 Logging and Monitoring | Medium | Structured redaction for tokens, credentials, headers, bodies, JWTs, and sensitive map values was added with focused tests. | Backend/security | **Mitigated in code; operational review pending**. Retain redacted-log evidence. |
-| R-04 / A01 Access Control, A03 Injection, A07 Authentication | High | Native PostgreSQL verification passed: 75 unit tests and 110 integration tests, exit 0, log `/tmp/tamdan-verify-final-rerun.log`. | Backend testing | **Verified for native runtime**. Continue regression coverage on future API changes. |
+| R-04 / A01 Access Control, A03 Injection, A07 Authentication | High | Native PostgreSQL verification passed: 77 unit tests and 111 integration tests, exit 0, log `/tmp/tamdan-corrected-verify.log`. | Backend testing | **Verified for native runtime**. Continue regression coverage on future API changes. |
 | R-05 / A02/A04 Mobile native security | High | Emulator `emulator-5554` passed Flutter integration, Android build/compile, secure-storage compatibility, and unsupported-state checks. | Mobile/Android testing | **Verified for current runtime evidence**. Repeat on a physical device before release if required. |
 | R-06 / A10 SSRF | Low | No `RestTemplate`, `WebClient`, `HttpClient`, `OkHttp`, or URL-fetch implementation was found in the reviewed backend revision. | Backend/security | **Not applicable to current code; monitor**. If external fetches are added, enforce allowlists, private-network blocking, redirect limits, timeouts, and size limits. |
 
@@ -43,7 +43,7 @@ Disposition: `needs-fix` / security evidence remains incomplete. Feature and nat
 - A02: Android Keystore/AES-GCM and backend environment-secret handling are present; secret-scan evidence remains.
 - A03: validation, parameterized persistence, and native integration evidence passed.
 - A04: stale/partial/unsupported states and emulator capability behavior are evidenced.
-- A05: sample profile activation and secret configuration were hardened; production review remains.
+- A05: sample profile activation and secret configuration were reviewed; `secret-samples` activates only under `dev`, and production values use environment-backed configuration.
 - A06: dependency inventory passed; vulnerability audit blocked by NVD API-key/data-update failure.
 - A07: auth/session/revocation code and native integration evidence passed.
 - A08: OpenAPI `v1.1.0` and controller drift validation passed on `ca17cde`.
