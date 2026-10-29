@@ -75,16 +75,17 @@ Backend test evidence: `cb13b55`, based on backend implementation `9795ee3`.
 
 ## Native runtime verification update
 
-- Backend canonical native-runtime commit: `080baf6`.
+- Backend canonical native-runtime commit: `ca17cde` (security fixes from `871ad14`).
 - Native PostgreSQL: reachable with role/database `tamdan`.
 - Backend `./mvnw verify`: passed; 75 unit tests and 110 integration tests, zero failures/errors.
 - Backend log: `/tmp/tamdan-verify-final-rerun.log`.
+- Final corrected backend logs: `/tmp/tamdan-corrected-test.log`, `/tmp/tamdan-corrected-verify.log`, `/tmp/tamdan-corrected-liquibase-validate.log`.
 - Android emulator: `emulator-5554` reported `device`.
 - Flutter analyze, Flutter tests, APK build, Flutter integration tests, and Android compile/assemble passed.
 - Mobile runtime commits: `3c60255` and `c4e69e8`.
 - OWASP register: [native-runtime-owasp-risk-register.md](native-runtime-owasp-risk-register.md).
 
-Remaining security work: dependency audit data/API configuration, committed sample-secret cleanup, structured sensitive-log redaction evidence, and final exact-commit review.
+Remaining security evidence: dependency audit data/API configuration, secret-scan output, and final production configuration review.
 
 ## Known blockers
 
