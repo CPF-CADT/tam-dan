@@ -25,7 +25,17 @@ abstract interface class ApiClient {
   });
 }
 
-class HttpApiClient implements ApiClient {
+abstract interface class HeaderApiClient {
+  Future<Map<String, dynamic>> sendWithHeaders(
+    String method,
+    String path, {
+    Map<String, dynamic>? query,
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+  });
+}
+
+class HttpApiClient implements ApiClient, HeaderApiClient {
   HttpApiClient({required this._baseUri, required this._accessToken});
 
   final Uri _baseUri;
@@ -37,6 +47,15 @@ class HttpApiClient implements ApiClient {
     String path, {
     Map<String, dynamic>? query,
     Map<String, dynamic>? body,
+  }) => sendWithHeaders(method, path, query: query, body: body);
+
+  @override
+  Future<Map<String, dynamic>> sendWithHeaders(
+    String method,
+    String path, {
+    Map<String, dynamic>? query,
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
   }) async {
     final uri = _baseUri.replace(
       path: '${_baseUri.path.replaceFirst(RegExp(r'\/$'), '')}$path',
@@ -48,6 +67,7 @@ class HttpApiClient implements ApiClient {
           .openUrl(method, uri)
           .timeout(const Duration(seconds: 15));
       request.headers.contentType = ContentType.json;
+      headers?.forEach(request.headers.set);
       final token = await _accessToken();
       if (token != null && token.isNotEmpty) {
         request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
