@@ -36,7 +36,7 @@ public class UsageReportService {
         List<ChildDevice> devices = childDeviceRepository.findAllByChildProfileId(childId).stream().filter(d -> Boolean.TRUE.equals(d.getActive()) && d.getRevokedAt() == null).toList();
         List<SafetyEvent> events = safetyEventRepository.findAllByChildProfileIdAndOccurredAtGreaterThanEqualAndOccurredAtLessThanEqual(childId, from, to);
         Instant generatedAt = Instant.now();
-        Instant dataThrough = events.stream().map(SafetyEvent::getOccurredAt).max(Comparator.naturalOrder()).orElse(null);
+        Instant dataThrough = events.stream().map(SafetyEvent::getOccurredAt).max(Comparator.naturalOrder()).orElse(from);
         List<SourceDeviceCoverageResponse> coverage = new ArrayList<>();
         boolean complete = !devices.isEmpty();
         for (ChildDevice device : devices) {
@@ -45,7 +45,7 @@ public class UsageReportService {
             if (!"COMPLETE".equals(status)) complete = false;
             coverage.add(new SourceDeviceCoverageResponse(device.getId(), to, observed, status, observed == null ? "No event received" : null));
         }
-        String freshness = dataThrough == null ? "UNKNOWN" : dataThrough.isBefore(generatedAt.minus(24, java.time.temporal.ChronoUnit.HOURS)) ? "STALE" : dataThrough.isBefore(to) ? "DELAYED" : "FRESH";
+        String freshness = events.isEmpty() ? "UNKNOWN" : dataThrough.isBefore(generatedAt.minus(24, java.time.temporal.ChronoUnit.HOURS)) ? "STALE" : dataThrough.isBefore(to) ? "DELAYED" : "FRESH";
         String completeness = devices.isEmpty() ? "UNKNOWN" : complete ? "COMPLETE" : events.isEmpty() ? "INSUFFICIENT" : "PARTIAL";
         String risk = "INSUFFICIENT".equals(completeness) || "UNKNOWN".equals(completeness) || "UNKNOWN".equals(freshness) ? "UNKNOWN" : events.stream().anyMatch(e -> e.getKind() == SafetyEvent.Kind.DOMAIN && e.getPayloadJson().contains("\"risk\":\"RISK\"")) ? "RISK" : "SAFE";
         String reason = "UNKNOWN".equals(risk) ? "Evidence is missing, stale, or incomplete" : null;
