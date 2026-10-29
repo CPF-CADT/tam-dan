@@ -2,11 +2,12 @@
 
 ## Status
 
-- State: `needs-fix`
-- Priority: `P0 — release gate`
+- State: `backlog`
+- Priority: `P2 — hardening`
 - Owner: coordinator/security
 - Depends on: backend `ca17cde`, mobile runtime `c4e69e8`, approved OpenAPI v1.1.0
-- Merge/deployment: blocked until this PRD is closed and Integration Review approves
+- Feature development: not blocked by this PRD
+- Merge/deployment: still requires normal Integration Review approval
 
 ## Problem
 

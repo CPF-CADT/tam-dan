@@ -2,12 +2,14 @@
 
 ## Status
 
-- State: `needs-fix`
-- Priority: `P0`
+- State: `deferred to backlog`
+- Priority: `P2`
 - Owner: coordinator
 - Applies to: final implementation revisions and future PRD 7 work
-- Merge/deployment: blocked
+- Feature development: not blocked
+- Merge/deployment: still requires normal Integration Review approval
 - Detailed closure PRD: [`tasks/08-security-evidence-completion/README.md`](../08-security-evidence-completion/README.md)
+- Deferred execution: [`tasks/backlog/12-security-evidence-hardening.md`](../backlog/12-security-evidence-hardening.md)
 
 ## Purpose
 

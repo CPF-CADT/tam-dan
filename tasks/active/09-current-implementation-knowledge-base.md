@@ -97,7 +97,7 @@ PRD: [08-security-evidence-completion](../08-security-evidence-completion/README
 - Backend fallback secret scan and focused redaction/configuration tests passed; logs `/tmp/prd8-s2-backend-secret-scan.log`, `/tmp/prd8-s2-mobile-secret-scan.log`, and `/tmp/prd8-s2-backend-targeted-tests.log`.
 - Production profile selection was observed, but production secret injection, fail-closed missing-secret behavior, deployment profile defaults, and operational log review remain unverified. Log: `/tmp/prd8-s2-prod-startup-without-secret-v2.log`.
 - Mobile S3 evidence was rerun on clean branch `codex/mobile-testing-s3` descended from `c4e69e8`; evidence commit `d9dfc2c2efcd4c6eb8ec7f43186304392028605d`. Flutter analysis, 14 Flutter tests, 2 emulator integration tests, Kotlin compilation, and debug assembly passed. Logs: `/tmp/tamdan-prd8-s3-mobile-testing/`.
-- Final Integration Review disposition: `NEEDS-FIX`. No merge or deployment approval.
+- Final Integration Review disposition for security evidence: `NEEDS-FIX`; deferred to backlog as non-critical hardening. No merge or deployment approval is implied by this deferral.
 
 ## Known blockers
 
