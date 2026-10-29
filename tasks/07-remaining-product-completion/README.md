@@ -2,7 +2,7 @@
 
 ## Status
 
-- State: `proposed`
+- State: `draft-awaiting-approval`
 - Priority: `P1` after integration hardening
 - Owner: coordinator
 - Depends on: approved OpenAPI v1.1.0, PRD 6 hardening, native PostgreSQL, Android emulator/device
@@ -201,3 +201,310 @@ Every result must record the exact revision, command, exit code, environment, an
 - All tests run against the exact implementation commits under review.
 - Integration Review returns `APPROVED`.
 - Only then may merge and deployment be separately approved.
+
+## Detailed implementation specification — approval required
+
+This section is the implementation contract for PRD 7. It is a design and planning document only. No agent may implement these items until the coordinator records explicit approval of this PRD and the affected OpenAPI contract.
+
+### 1. Global rules and constraints
+
+#### Requirements gates
+
+1. Requirements approval is required before application-code changes.
+2. OpenAPI v1.1.0 remains the baseline. Any route, request, response, enum, ID type, or error change requires a new versioned contract proposal and approval.
+3. Backend and mobile work must use separate branches/worktrees.
+4. Each task has one owner and one file boundary. Cross-boundary changes require coordinator reassignment.
+5. Every changed boundary requires real automated tests. Unavailable checks must be reported as unavailable, never as passed.
+6. Integration Review must approve before merge. Deployment is a separate approval.
+
+#### Ownership rules
+
+- The authenticated parent may access only resources whose family membership is established by the server.
+- A child belongs to exactly one family in the active product model.
+- A device belongs to exactly one child and one family.
+- A device credential never grants parent privileges.
+- Device-originated activity, acknowledgement, and synchronization writes must be scoped to the authenticated device and its child.
+- Client-supplied `familyId`, `childId`, `deviceId`, `parentId`, or owner fields are selectors only; authorization is resolved from the authenticated principal and database relationships.
+- Cross-family access returns the repository’s approved not-found/forbidden behavior consistently without leaking resource existence.
+- Reports, alerts, policies, and acknowledgements must not cross family, child, or device boundaries.
+
+#### Input and persistence rules
+
+- Validate all body, path, query, enum, date, numeric, and free-text inputs at the API boundary.
+- Apply maximum lengths, page-size limits, date-range limits, and bounded list sizes.
+- Reject unknown enum values unless the OpenAPI contract explicitly permits them.
+- Use parameterized repository queries only; never concatenate SQL, JPQL, shell, URL, or log-format fragments from user input.
+- Normalize identifiers and trim user-entered display text before persistence.
+- Never log passwords, JWTs, refresh tokens, device credentials, pairing codes, or sensitive activity content.
+- Use DTOs at controller boundaries; do not return JPA entities directly.
+- Persist timestamps in UTC and return ISO-8601 timestamps.
+
+### 2. Backend class and function design
+
+These are target responsibilities. Existing classes may be extended only when they retain one clear responsibility; otherwise create a focused class.
+
+#### Identity and device domain
+
+`AuthenticationService`
+
+- `TokenResponse authenticate(LoginRequest request)`
+- `TokenResponse refresh(RefreshRequest request)`
+- `void logout(String refreshToken)`
+- `void requestPasswordReset(String email)`
+- `void resetPassword(String key, String newPassword)`
+
+Rules: validate credentials, enforce account activation, rotate/revoke sessions, never return or log raw credentials, and rate-limit repeated failures.
+
+`FamilyService`
+
+- `FamilyResponse getOwnedFamily(AuthenticatedParentContext parent)`
+- `ChildProfileResponse createChild(AuthenticatedParentContext parent, CreateChildRequest request)`
+- `ChildProfileResponse updateChild(AuthenticatedParentContext parent, Long childId, UpdateChildRequest request)`
+- `void deactivateChild(AuthenticatedParentContext parent, Long childId)`
+
+Rules: derive family from the authenticated parent; verify child membership in every operation; prevent reassignment through client input; preserve audit events.
+
+`PairingService`
+
+- `PairingCodeResponse createCode(AuthenticatedParentContext parent, CreatePairingCodeRequest request)`
+- `ChildContextResponse completePairing(CompletePairingRequest request)`
+- `void revokePairing(AuthenticatedParentContext parent, Long deviceId)`
+
+Rules: codes are random, hashed at rest, single-use, expiring, throttled, and never logged; completion creates a device credential scoped to the selected child; replay and expired codes fail deterministically.
+
+`DeviceService`
+
+- `PageResponse<DeviceResponse> listDevices(AuthenticatedParentContext parent, PageRequest page)`
+- `DeviceResponse renameDevice(AuthenticatedParentContext parent, Long deviceId, RenameDeviceRequest request)`
+- `DeviceCredentialResponse rotateCredential(AuthenticatedParentContext parent, Long deviceId)`
+- `void revokeDevice(AuthenticatedParentContext parent, Long deviceId)`
+- `DeviceResponse updatePermissions(AuthenticatedDeviceContext device, DevicePermissionRequest request)`
+
+Rules: parent operations require family ownership; device operations require device identity; revoked devices cannot ingest or acknowledge; rotation invalidates the previous credential.
+
+#### Safety and policy domain
+
+`ActivityIngestionService`
+
+- `IngestionResult ingest(AuthenticatedDeviceContext device, ActivityBatchRequest request)`
+- `IngestionResult retry(AuthenticatedDeviceContext device, String idempotencyKey, ActivityBatchRequest request)`
+
+Rules: enforce device-child-family ownership, validate event timestamps and bounds, deduplicate by stable event ID, reject malformed or oversized batches, and report accepted/rejected counts without exposing secrets.
+
+`UsageReportService`
+
+- `UsageReportResponse getReport(AuthenticatedParentContext parent, Long childId, ReportQuery query)`
+- `ReportFreshness calculateFreshness(Instant generatedAt, Instant dataThrough, Instant now)`
+- `Completeness calculateCompleteness(Collection<DeviceCoverage> coverage)`
+
+Rules: reports include `generatedAt`, `dataThrough`, `freshness`, `completeness`, and `sourceDeviceCoverage`; missing, delayed, partial, or unknown evidence must not become `SAFE`; all child/device data is family-scoped.
+
+`RiskAssessmentService`
+
+- `RiskResult evaluate(ActivityWindow window)`
+- `RiskResult classifyInsufficientEvidence(EvidenceState state)`
+
+Rules: deterministic rule-based results are allowed; unavailable or insufficient evidence returns `UNKNOWN`; do not claim ML certainty or infer safety from missing data.
+
+`AlertService`
+
+- `PageResponse<AlertResponse> listAlerts(AuthenticatedParentContext parent, AlertQuery query)`
+- `AlertResponse review(AuthenticatedParentContext parent, Long alertId, AlertReviewRequest request)`
+- `void dismiss(AuthenticatedParentContext parent, Long alertId)`
+
+Rules: alerts are family-scoped, review/dismiss actions are idempotent, duplicate alerts use a stable deduplication key, and alert content is bounded and redacted in logs.
+
+`PolicyService`
+
+- `PolicyResponse create(AuthenticatedParentContext parent, Long childId, CreatePolicyRequest request)`
+- `PolicyResponse update(AuthenticatedParentContext parent, Long policyId, UpdatePolicyRequest request)`
+- `void pause(AuthenticatedParentContext parent, Long policyId)`
+- `void remove(AuthenticatedParentContext parent, Long policyId)`
+- `PageResponse<PolicyDeliveryResponse> deliveryStatus(AuthenticatedParentContext parent, Long policyId)`
+
+Rules: policies are family/child scoped, type-specific constraints are enforced, unsupported capabilities return `UNSUPPORTED`, and `ACTIVE` is valid only after device acknowledgement.
+
+`PolicyAcknowledgementService`
+
+- `AcknowledgementResponse acknowledge(AuthenticatedDeviceContext device, PolicyAcknowledgementRequest request)`
+- `PolicyState getEffectiveState(AuthenticatedParentContext parent, Long policyId)`
+
+Rules: a device may acknowledge only policies assigned to its own child; stale versions cannot overwrite newer versions; acknowledgement transitions are monotonic and auditable.
+
+#### Required backend layering
+
+```text
+Controller/Resource -> Request DTO validation -> Application Service
+  -> Ownership/authorization check -> Repository query
+  -> Domain result -> Response DTO
+```
+
+Controllers must not contain business rules or direct repository access. Repositories must expose ownership-scoped query methods rather than loading broad data and filtering in memory.
+
+### 3. Flutter MVVM design
+
+The mobile implementation must follow MVVM.
+
+#### Required layers
+
+```text
+Screen/Widget -> ViewModel -> Repository -> ApiClient / SecureStorage / PlatformChannel
+```
+
+Widgets must render state and dispatch user intents. Widgets must not call HTTP clients, repositories, secure storage, or Android channels directly.
+
+#### Target classes
+
+`AuthViewModel`
+
+- `Future<void> login(String email, String password)`
+- `Future<void> refreshSession()`
+- `Future<void> logout()`
+- `Future<void> recoverExpiredSession()`
+
+State must distinguish `idle`, `loading`, `authenticated`, `unauthenticated`, `expired`, `offline`, and `error`.
+
+`FamilyViewModel`
+
+- `Future<void> loadFamily()`
+- `Future<void> createChild(CreateChildInput input)`
+- `Future<void> updateChild(ChildId id, UpdateChildInput input)`
+- `Future<void> deactivateChild(ChildId id)`
+
+Rules: clear stale data on account change, expose empty/loading/error states, and never construct ownership IDs from UI-only state.
+
+`DeviceViewModel`
+
+- `Future<void> loadDevices()`
+- `Future<void> createPairingCode(ChildId childId)`
+- `Future<void> renameDevice(DeviceId id, String name)`
+- `Future<void> revokeDevice(DeviceId id)`
+- `Future<void> rotateCredential(DeviceId id)`
+
+Rules: show pending, active, revoked, offline, and unsupported states; never display raw credentials after the one-time handoff screen.
+
+`ReportViewModel`
+
+- `Future<void> loadReport(ChildId childId, ReportRange range)`
+- `void selectRange(ReportRange range)`
+- `void retry()`
+
+Rules: render freshness/completeness/source-device coverage; stale or partial data must be visibly labeled; unknown risk must not render as safe.
+
+`AlertViewModel` and `PolicyViewModel`
+
+- Load, review/dismiss, create, update, pause, remove, retry, and refresh delivery state.
+- Every mutation must update state only after the server response succeeds.
+- Failed mutations must preserve the last known server state and expose a retry action.
+
+#### Mobile constraints
+
+- Numeric IDs must match OpenAPI and backend types.
+- API serialization must be centralized in repository/client code.
+- Secure storage must clear session/device credentials on logout or revocation.
+- Loading, empty, offline, stale, unauthorized, failed, and unsupported states are mandatory where applicable.
+- No placeholder device identity, fake enforcement success, or hard-coded production endpoint.
+
+### 4. Android Kotlin design
+
+`MonitoringEngine`
+
+- `startMonitoring(): Result<MonitoringState>`
+- `stopMonitoring(): Result<MonitoringState>`
+- `getCapabilities(): CapabilityMatrix`
+- `getStatus(): MonitoringStatus`
+
+`ActivityEventStore`
+
+- `enqueue(ActivityEvent event)`
+- `List<ActivityEvent> pendingBatch(int limit)`
+- `markUploaded(Set<String> eventIds)`
+- `discardExpired(Instant cutoff)`
+
+Rules: durable offline storage, stable event IDs, bounded queue size, duplicate-safe upload, and no sensitive data in debug logs.
+
+`PolicyEnforcementEngine`
+
+- `apply(Policy policy): EnforcementResult`
+- `remove(PolicyId policyId): EnforcementResult`
+- `getSupport(PolicyType type): SupportState`
+
+Rules: supported behavior reports `ACTIVE` only after confirmation; unavailable VPN/domain enforcement reports `UNSUPPORTED`; permission loss reports `FAILED` or `PENDING` as defined by the state machine; no silent success.
+
+`DeviceCredentialStore`
+
+- `save(DeviceContext context)`
+- `read(): DeviceContext?`
+- `clear()`
+
+Rules: Android Keystore-backed encryption, corrupt/missing data becomes a recoverable signed-out state, and credentials are never returned to logs or UI analytics.
+
+### 5. State machines
+
+#### Device state
+
+```text
+PAIRING_PENDING -> ACTIVE -> REVOKED
+PAIRING_PENDING -> EXPIRED
+ACTIVE -> FAILED (temporary health failure)
+FAILED -> ACTIVE (successful resynchronization)
+```
+
+#### Policy state
+
+```text
+DRAFT -> PENDING_DELIVERY -> ACTIVE
+PENDING_DELIVERY -> FAILED
+ACTIVE -> PAUSED -> ACTIVE
+ACTIVE -> REMOVED
+```
+
+`ACTIVE` requires a device acknowledgement for the exact policy version. A stale acknowledgement cannot activate a newer version.
+
+#### Report state
+
+```text
+LOADING -> COMPLETE | PARTIAL | STALE | UNKNOWN | ERROR
+```
+
+`UNKNOWN` is required when evidence is insufficient. `PARTIAL` is required when one or more expected devices or time windows are missing.
+
+### 6. Contract requirements
+
+Before implementation:
+
+1. Compare every target function with `agent-workflow/contracts/openapi-v1.yaml`.
+2. Add missing schemas/routes only through an OpenAPI v1.1.x proposal.
+3. Confirm all IDs, timestamps, enums, pagination, errors, and ownership semantics.
+4. Generate or update contract tests before backend/mobile implementation.
+5. Obtain coordinator approval for the contract before API code changes.
+
+### 7. Task decomposition after approval
+
+| Task | Owner | Boundary | Depends on |
+|---|---|---|---|
+| P7-01 contract gap matrix | planning/coordinator | OpenAPI and task records | PRD approval |
+| P7-02 identity/device lifecycle | backend-development | `backend` identity/device packages | P7-01 |
+| P7-03 safety/report/policy lifecycle | backend-development | `backend` safety/policy packages | P7-01, P7-02 |
+| P7-04 parent MVVM journeys | mobile-development | `mobile/lib` parent features | P7-01 |
+| P7-05 child MVVM journeys | mobile-development | `mobile/lib` child features | P7-01, P7-02 |
+| P7-06 Android supported runtime | mobile-development | `mobile/android` | P7-01, P7-05 |
+| P7-07 backend native tests | backend-testing | backend test sources and logs | P7-02, P7-03 |
+| P7-08 mobile/device tests | mobile-testing | Flutter/Android tests and logs | P7-04, P7-05, P7-06 |
+| P7-09 integration review | integration-review | review records only | P7-07, P7-08 |
+
+No task may start until its requirements reference, approved contract version, branch/worktree, acceptance criteria, and verification commands are recorded.
+
+### 8. Approval record
+
+Current state: `WAITING FOR USER APPROVAL`.
+
+Approval must explicitly confirm:
+
+- this detailed PRD scope;
+- backend, Flutter MVVM, and Android responsibilities;
+- ownership, validation, and unsupported-capability rules;
+- the task order and isolated workstreams;
+- permission to create task records and begin planning only.
+
+Until approval is recorded, agents must not implement application features.
