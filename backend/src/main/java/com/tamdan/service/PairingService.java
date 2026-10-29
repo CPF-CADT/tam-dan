@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -164,6 +165,23 @@ public class PairingService {
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 is unavailable", exception);
         }
+    }
+
+    public com.tamdan.dto.response.PairingCompletionResponse toV1Completion(DeviceCredentialResponse response) {
+        ChildDevice device = childDeviceRepository.findById(response.deviceId()).orElseThrow(() -> new ResourceNotFoundException("Device was not found"));
+        Map<String, Object> capabilities;
+        try {
+            capabilities = objectMapper.readValue(device.getCapabilitiesJson(), Map.class);
+        } catch (JacksonException | ClassCastException exception) {
+            capabilities = Map.of();
+        }
+        String status = Boolean.TRUE.equals(device.getActive()) && device.getRevokedAt() == null ? "ACTIVE" : "REVOKED";
+        return new com.tamdan.dto.response.PairingCompletionResponse(
+            new com.tamdan.dto.response.DeviceV1Response(
+                device.getId(), device.getChildProfile().getId(), device.getDisplayName(), status, device.getPlatform(), capabilities
+            ),
+            response.credential()
+        );
     }
 
     private String generateCode() {

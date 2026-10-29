@@ -54,6 +54,15 @@ public class ChildProfileService {
     }
 
     @Transactional
+    public ChildProfileResponse updateDisplayName(Long parentId, Long childId, String displayName) {
+        Family family = familyService.requireFamilyForParent(parentId);
+        ChildProfile child = childProfileRepository.findByIdAndFamilyIdAndActiveTrue(childId, family.getId()).orElseThrow(() ->
+            new ResourceNotFoundException("Active child profile was not found"));
+        child.update(displayName.trim(), true);
+        return toResponse(childProfileRepository.save(child));
+    }
+
+    @Transactional
     public void deactivate(Long parentId, Long childId) {
         Family family = familyService.requireFamilyForParent(parentId);
         ChildProfile child = childProfileRepository.findByIdAndFamilyIdAndActiveTrue(childId, family.getId()).orElseThrow(() ->

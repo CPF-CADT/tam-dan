@@ -51,6 +51,7 @@ public class DeviceAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         return path.equals("/api/authenticate") || path.equals("/api/authenticate/refresh") || path.equals("/api/authenticate/logout") || path.equals("/api/authenticate/logout-all") ||
             path.equals("/api/register") || path.equals("/api/activate") || path.equals("/api/activate/resend") ||
-            path.startsWith("/api/account/");
+            path.startsWith("/api/account/") || path.startsWith("/api/v1/auth/") || path.equals("/api/v1/pairing/complete") ||
+            path.startsWith("/api/v1/families/me/");
     }
 }
