@@ -74,24 +74,22 @@ Backend test evidence: `cb13b55`, based on backend implementation `9795ee3`.
 
 ## Known blockers
 
-1. Docker/Testcontainers is unavailable, so full backend integration tests cannot run.
-2. PostgreSQL role/database `tamdan` is unavailable, so Liquibase validation is blocked.
-3. No Android device/emulator is connected, so secure-storage restart/logout, pairing, VPN, enforcement, reboot, and resynchronization are unverified.
+1. The primary verification environment must use native PostgreSQL; Docker/Testcontainers is optional CI infrastructure, not the developer path.
+2. PostgreSQL role/database `tamdan` must be created locally before Liquibase and database-backed tests can run.
+3. An Android emulator or physical device must be connected for secure-storage restart/logout, pairing, VPN, enforcement, reboot, and resynchronization.
 4. Dependency scan, secret scan, threat-model evidence, and accepted-risk register are not attached.
 5. The coordinator worktree contains untracked mobile agent artifacts; they are not merged or approved.
 
 ## Start next
 
-### 1. Restore verification environments
+### 1. Prepare the real local runtime
 
 ```bash
-docker info
-docker ps -a
 pg_isready -h localhost -p 5432 -U tamdan
 adb devices -l
 ```
 
-Create/provide the approved PostgreSQL database and role, start Docker, and connect an Android emulator or physical device.
+Install and start PostgreSQL natively using the operating system package manager or official installer. Create database `tamdan` and login role `tamdan` with the credentials expected by the selected Spring profile. Connect an Android emulator or physical device. Do not use Docker for the primary local verification.
 
 ### 2. Run final backend verification
 
@@ -101,6 +99,8 @@ cd backend
 ./mvnw verify
 ./mvnw liquibase:validate
 ```
+
+If integration tests are hard-coded to Testcontainers, update the test profile to use the approved local PostgreSQL connection without weakening the tests. Treat Testcontainers as an optional CI path.
 
 ### 3. Run final mobile/device verification
 
@@ -123,7 +123,7 @@ Verify secure storage read/write/delete/restart/logout, pairing, credential revo
 
 ### 5. Request final Integration Review
 
-Only after all available checks have logs and unavailable checks are resolved or explicitly accepted by the release owner. Do not merge or deploy before `APPROVED`.
+Only after native PostgreSQL, backend runtime, Flutter, and Android runtime checks have logs. Do not merge or deploy before `APPROVED`.
 
 ## Important rule
 
