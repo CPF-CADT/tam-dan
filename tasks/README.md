@@ -15,3 +15,5 @@ ML dataset preparation and model training are separate workstreams and are not i
 The integration-hardening PRD is a P0 merge gate for the seven blockers returned by Integration Review. It must be completed after the feature work and before merge or deployment.
 
 PRD 7 tracks the remaining end-to-end product work for the Parent Mobile, Child Mobile, Android, Identity/Device Backend, and Safety/Policy Backend PRDs.
+
+The active [NEEDS-FIX Release and Integration Gate](active/11-needs-fix-release-gate.md) tracks release evidence and review blockers separately from feature completion.
