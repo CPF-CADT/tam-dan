@@ -2,7 +2,7 @@
 
 - ID: `00-coordinator-workflow`
 - Role: `coordinator`
-- State: `ready`
+- State: `requirements-and-contracts-pending`
 - Branch: `codex/coordinator`
 - Requirements approval: Figma prototype reviewed; product requirements and API contract remain required gates
 - OpenAPI approval: `pending`
@@ -21,6 +21,12 @@ Manage the Tam Dan development tasks across isolated role branches. Do not imple
 - `codex/backend-testing` — backend automated verification
 - `codex/mobile-testing` — mobile automated verification
 - `codex/integration-review` — combined review and merge recommendation
+
+## Current coordinator result
+
+Planning and UI Design completed read-only review. Their results are recorded in `01-planning-result.md` and `02-ui-design-result.md`.
+
+No implementation agent may start until the outstanding approval items in those results are resolved.
 
 ## Required order
 
