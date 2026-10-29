@@ -11,6 +11,7 @@ import com.tamdan.security.AuthoritiesConstants;
 import com.tamdan.service.ActivityIngestionService;
 import com.tamdan.service.PolicyAcknowledgementService;
 import com.tamdan.service.PolicyService;
+import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/devices/me")
+@RequestMapping(ApiPaths.API_V1 + "/devices/me")
 @PreAuthorize("hasAuthority('" + AuthoritiesConstants.DEVICE + "')")
 public class DeviceSafetyResource {
     private final ActivityIngestionService activityIngestionService;

@@ -6,6 +6,7 @@ import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.security.AuthenticatedUserIdResolver;
 import com.tamdan.security.AuthoritiesConstants;
 import com.tamdan.service.AlertService;
+import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/alerts")
+@RequestMapping(ApiPaths.API_V1 + "/alerts")
 @PreAuthorize("hasAnyAuthority('" + AuthoritiesConstants.USER + "','" + AuthoritiesConstants.ADMIN + "')")
 public class AlertResource {
     private final AlertService alertService;

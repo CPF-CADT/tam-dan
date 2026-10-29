@@ -14,6 +14,7 @@ import com.tamdan.security.AuthoritiesConstants;
 import com.tamdan.service.AlertService;
 import com.tamdan.service.PolicyService;
 import com.tamdan.service.UsageReportService;
+import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -34,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/families/me/children")
+@RequestMapping(ApiPaths.API_V1 + "/families/me/children")
 @PreAuthorize("hasAnyAuthority('" + AuthoritiesConstants.USER + "','" + AuthoritiesConstants.ADMIN + "')")
 public class SafetyPolicyResource {
     private final AuthenticatedUserIdResolver parentResolver;
