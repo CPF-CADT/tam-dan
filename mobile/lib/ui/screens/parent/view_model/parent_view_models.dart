@@ -344,4 +344,22 @@ class PolicyViewModel extends BaseViewModel {
       notifyListeners();
     }
   }
+
+  Future<void> pause(int childId, int policyId) async {
+    try {
+      final policy = await _repository.pausePolicy(childId, policyId);
+      state = AsyncState(
+        status: LoadStatus.ready,
+        value: List.unmodifiable([
+          ...(state.value ?? const <Policy>[]).map(
+            (item) => item.id == policy.id ? policy : item,
+          ),
+        ]),
+      );
+    } catch (error) {
+      _message = readableError(error);
+      notifyListeners();
+    }
+    notifyListeners();
+  }
 }

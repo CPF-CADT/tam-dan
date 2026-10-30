@@ -5,6 +5,12 @@ import '../../../core/utils/date_time_utils.dart';
 import '../../../model/parent_models.dart';
 import '../../widgets/view_model_builder.dart';
 import '../../states/state_message.dart';
+import 'activity/activity_summary_screen.dart';
+import 'alerts/safety_alerts_screen.dart';
+import 'controls/controls_hub_screen.dart';
+import 'device/child_overview_screen.dart';
+import 'home/parent_home_screen.dart';
+import 'settings/device_settings_screen.dart';
 import 'view_model/parent_view_models.dart';
 
 part 'auth_screen.dart';
@@ -360,6 +366,7 @@ class _ParentShell extends StatefulWidget {
 
 class _ParentShellState extends State<_ParentShell> {
   int tab = 0;
+  bool deviceDetail = false;
   @override
   void initState() {
     super.initState();
@@ -372,13 +379,17 @@ class _ParentShellState extends State<_ParentShell> {
       viewModel: widget.children,
       builder: (context, children) {
         final child = children.selected;
+        if (child == null) deviceDetail = false;
         return Scaffold(
           appBar: AppBar(
             title: child == null
                 ? const Text('Family')
                 : PopupMenuButton<Child>(
                     tooltip: 'Select child',
-                    onSelected: children.select,
+                    onSelected: (value) => setState(() {
+                      children.select(value);
+                      deviceDetail = false;
+                    }),
                     itemBuilder: (context) => [
                       for (final option
                           in children.state.value ?? const <Child>[])
@@ -396,6 +407,19 @@ class _ParentShellState extends State<_ParentShell> {
                     ),
                   ),
             actions: [
+              if (child != null)
+                IconButton(
+                  tooltip: 'Safety alerts',
+                  onPressed: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => SafetyAlertsScreen(
+                        child: child,
+                        viewModel: widget.alerts,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.notifications_none),
+                ),
               IconButton(
                 tooltip: 'Sign out',
                 onPressed: widget.onLogout,
@@ -409,31 +433,57 @@ class _ParentShellState extends State<_ParentShell> {
                   message: children.state.message,
                   retry: children.load,
                 )
-              : IndexedStack(
-                  index: tab,
-                  children: [
-                    OverviewTab(
-                      child: child,
-                      devices: widget.devices,
-                      reports: widget.reports,
-                    ),
-                    AlertsTab(child: child, viewModel: widget.alerts),
-                    PoliciesTab(child: child, viewModel: widget.policies),
-                  ],
+              : tab == 0
+              ? (deviceDetail
+                    ? ChildOverviewScreen(
+                        child: child,
+                        devices: widget.devices,
+                        reports: widget.reports,
+                        policies: widget.policies,
+                        onActivity: () => setState(() {
+                          deviceDetail = false;
+                          tab = 1;
+                        }),
+                        onControls: () => setState(() {
+                          deviceDetail = false;
+                          tab = 2;
+                        }),
+                      )
+                    : ParentHomeScreen(
+                        child: child,
+                        devices: widget.devices,
+                        reports: widget.reports,
+                        alerts: widget.alerts,
+                        onOpenDevice: () => setState(() => deviceDetail = true),
+                        onOpenActivity: () => setState(() => tab = 1),
+                      ))
+              : tab == 1
+              ? ActivitySummaryScreen(child: child, viewModel: widget.reports)
+              : tab == 2
+              ? ControlsHubScreen(child: child, viewModel: widget.policies)
+              : DeviceSettingsScreen(
+                  child: child,
+                  devices: widget.devices,
+                  onLogout: widget.onLogout,
+                  showBottomNavigation: false,
                 ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: tab,
             onDestinationSelected: (value) => setState(() => tab = value),
             destinations: const [
               NavigationDestination(
-                icon: Icon(Icons.dashboard_outlined),
-                label: 'Overview',
+                icon: Icon(Icons.home_outlined),
+                label: 'Home',
               ),
               NavigationDestination(
-                icon: Icon(Icons.notifications_none),
-                label: 'Alerts',
+                icon: Icon(Icons.bar_chart_outlined),
+                label: 'Activity',
               ),
-              NavigationDestination(icon: Icon(Icons.tune), label: 'Policies'),
+              NavigationDestination(icon: Icon(Icons.tune), label: 'Controls'),
+              NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                label: 'Settings',
+              ),
             ],
           ),
         );
