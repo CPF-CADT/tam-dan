@@ -83,6 +83,6 @@ class TokenAuthenticationSecurityMetersIT {
     }
 
     private double aggregate(Collection<Counter> counters) {
-        return counters.stream().mapToDouble(Counter::count).sum();
+        return counters.stream().mapToDouble(counter -> counter.count()).sum();
     }
 }

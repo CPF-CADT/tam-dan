@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import java.util.Map;
 
@@ -171,7 +172,7 @@ public class PairingService {
         ChildDevice device = childDeviceRepository.findById(response.deviceId()).orElseThrow(() -> new ResourceNotFoundException("Device was not found"));
         Map<String, Object> capabilities;
         try {
-            capabilities = objectMapper.readValue(device.getCapabilitiesJson(), Map.class);
+            capabilities = objectMapper.readValue(device.getCapabilitiesJson(), new TypeReference<Map<String, Object>>() {});
         } catch (JacksonException | ClassCastException exception) {
             capabilities = Map.of();
         }

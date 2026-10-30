@@ -55,7 +55,7 @@ class LoggingAspectTest {
     }
 
     private List<String> messages() {
-        return appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+        return appender.list.stream().map(event -> event.getFormattedMessage()).toList();
     }
 
     @Test

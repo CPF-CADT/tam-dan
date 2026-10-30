@@ -168,7 +168,7 @@ public class UserService {
     @Transactional
     public Optional<User> requestPasswordReset(String email) {
         if (rateLimitService != null) rateLimitService.check(RateLimitService.Operation.RECOVERY, normalizeEmail(email));
-        Optional<User> result = userRepository.findOneByEmailIgnoreCase(normalizeEmail(email)).filter(User::isActivated).map(user -> {
+        Optional<User> result = userRepository.findOneByEmailIgnoreCase(normalizeEmail(email)).filter(user -> user.isActivated()).map(user -> {
             user.preparePasswordReset(RandomUtil.generateResetKey(), Instant.now());
             return user;
         });
@@ -286,7 +286,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<String> getAuthorities() {
-        return authorityRepository.findAll().stream().map(Authority::getName).toList();
+        return authorityRepository.findAll().stream().map(authority -> authority.getName()).toList();
     }
 
     private void ensureRegistrationIdentityAvailable(String login, String email) {

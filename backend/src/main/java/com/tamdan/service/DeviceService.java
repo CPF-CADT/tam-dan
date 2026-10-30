@@ -119,7 +119,7 @@ public class DeviceService {
     public com.tamdan.dto.response.DeviceV1Response toV1Response(ChildDevice device) {
         Map<String, Object> capabilities;
         try {
-            capabilities = objectMapper.readValue(device.getCapabilitiesJson(), Map.class);
+            capabilities = objectMapper.readValue(device.getCapabilitiesJson(), new tools.jackson.core.type.TypeReference<Map<String, Object>>() {});
         } catch (JacksonException | ClassCastException exception) {
             capabilities = Map.of();
         }

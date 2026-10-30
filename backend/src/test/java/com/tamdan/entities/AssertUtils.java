@@ -7,9 +7,9 @@ import java.util.Comparator;
 
 public class AssertUtils {
 
-    public static Comparator<ZonedDateTime> zonedDateTimeSameInstant = Comparator.nullsFirst((e1, a2) ->
+    public static Comparator<ZonedDateTime> zonedDateTimeSameInstant = Comparator.nullsFirst((ZonedDateTime e1, ZonedDateTime a2) ->
         e1.withZoneSameInstant(ZoneOffset.UTC).compareTo(a2.withZoneSameInstant(ZoneOffset.UTC))
     );
 
-    public static Comparator<BigDecimal> bigDecimalCompareTo = Comparator.nullsFirst(BigDecimal::compareTo);
+    public static Comparator<BigDecimal> bigDecimalCompareTo = Comparator.nullsFirst((left, right) -> left.compareTo(right));
 }

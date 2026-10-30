@@ -36,11 +36,11 @@ public class UsageReportService {
         List<ChildDevice> devices = childDeviceRepository.findAllByChildProfileId(childId).stream().filter(d -> Boolean.TRUE.equals(d.getActive()) && d.getRevokedAt() == null).toList();
         List<SafetyEvent> events = safetyEventRepository.findAllByChildProfileIdAndOccurredAtGreaterThanEqualAndOccurredAtLessThanEqual(childId, from, to);
         Instant generatedAt = Instant.now();
-        Instant dataThrough = events.stream().map(SafetyEvent::getOccurredAt).max(Comparator.naturalOrder()).orElse(from);
+        Instant dataThrough = events.stream().map(event -> event.getOccurredAt()).max(Comparator.naturalOrder()).orElse(from);
         List<SourceDeviceCoverageResponse> coverage = new ArrayList<>();
         boolean complete = !devices.isEmpty();
         for (ChildDevice device : devices) {
-            Instant observed = events.stream().filter(e -> e.getChildDevice().getId().equals(device.getId())).map(SafetyEvent::getOccurredAt).max(Comparator.naturalOrder()).orElse(null);
+            Instant observed = events.stream().filter(e -> e.getChildDevice().getId().equals(device.getId())).map(event -> event.getOccurredAt()).max(Comparator.naturalOrder()).orElse(null);
             String status = observed == null ? "MISSING" : observed.isBefore(to.minus(24, java.time.temporal.ChronoUnit.HOURS)) ? "DELAYED" : "COMPLETE";
             if (!"COMPLETE".equals(status)) complete = false;
             coverage.add(new SourceDeviceCoverageResponse(device.getId(), to, observed, status, observed == null ? "No event received" : null));
