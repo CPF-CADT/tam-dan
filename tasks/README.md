@@ -12,6 +12,7 @@ Each software component has an independent product requirements document:
 8. [Security Evidence Completion and NEEDS-FIX Closure](08-security-evidence-completion/README.md)
 9. [Production Readiness](09-production-readiness/README.md) — proposed production release gate.
 10. [Auth Experience Refresh and Demo Data](10-auth-experience-and-demo-data/README.md) — proposed usability and development-fixture work.
+11. [Figma Mobile Screen Implementation](active/13-figma-mobile-screen-implementation.md) — proposed 20-screen parent/child visual implementation.
 
 ## Backlog
 
