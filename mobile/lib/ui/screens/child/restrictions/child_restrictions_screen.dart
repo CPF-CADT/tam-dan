@@ -7,14 +7,22 @@ import '../view_model/child_view_model.dart';
 import 'child_game_restricted_screen.dart';
 import 'child_website_safety_screen.dart';
 
-class ChildRestrictionsScreen extends StatelessWidget {
+class ChildRestrictionsScreen extends StatefulWidget {
   const ChildRestrictionsScreen({super.key, required this.viewModel});
 
   final ChildViewModel viewModel;
 
   @override
+  State<ChildRestrictionsScreen> createState() =>
+      _ChildRestrictionsScreenState();
+}
+
+class _ChildRestrictionsScreenState extends State<ChildRestrictionsScreen> {
+  String _selectedTab = 'Apps';
+
+  @override
   Widget build(BuildContext context) => AnimatedBuilder(
-    animation: viewModel,
+    animation: widget.viewModel,
     builder: (context, _) => Scaffold(
       appBar: AppBar(title: const Text('Tam Dan')),
       body: ListView(
@@ -22,53 +30,76 @@ class ChildRestrictionsScreen extends StatelessWidget {
         children: [
           const Text('Active restrictions', style: AppTextStyles.title),
           const SizedBox(height: 12),
-          const _RestrictionTabs(),
-          const SizedBox(height: 24),
-          const Text('Daily app limits', style: AppTextStyles.title),
-          const SizedBox(height: 8),
-          if (viewModel.state.policies.isEmpty)
-            const _EmptyRestrictionCard()
-          else
-            ...viewModel.state.policies.map(
-              (policy) => _PolicyRow(
-                policy: policy,
-                onTap: policy.target.toLowerCase().contains('game')
-                    ? () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => ChildGameRestrictedScreen(
-                            viewModel: viewModel,
-                            policy: policy,
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-          const SizedBox(height: 20),
-          const Text('Website safety', style: AppTextStyles.title),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.language),
-              title: const Text('Website activity'),
-              subtitle: const Text('Open the supported safety summary'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      ChildWebsiteSafetyScreen(viewModel: viewModel),
-                ),
-              ),
-            ),
+          _RestrictionTabs(
+            selected: _selectedTab,
+            onChanged: (value) => setState(() => _selectedTab = value),
           ),
+          const SizedBox(height: 24),
+          _tabContent(context),
         ],
       ),
     ),
   );
+
+  Widget _tabContent(BuildContext context) {
+    if (_selectedTab == 'Website') {
+      return Card(
+        child: ListTile(
+          leading: const Icon(Icons.language),
+          title: const Text('Website activity'),
+          subtitle: const Text('Open the supported safety summary'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  ChildWebsiteSafetyScreen(viewModel: widget.viewModel),
+            ),
+          ),
+        ),
+      );
+    }
+    final policies = widget.viewModel.state.policies
+        .where((policy) {
+          final isGame = policy.target.toLowerCase().contains('game');
+          return _selectedTab == 'Games' ? isGame : true;
+        })
+        .toList(growable: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _selectedTab == 'Games' ? 'Game restrictions' : 'Daily app limits',
+          style: AppTextStyles.title,
+        ),
+        const SizedBox(height: 8),
+        if (policies.isEmpty)
+          const _EmptyRestrictionCard()
+        else
+          ...policies.map(
+            (policy) => _PolicyRow(
+              policy: policy,
+              onTap: _selectedTab == 'Games'
+                  ? () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ChildGameRestrictedScreen(
+                          viewModel: widget.viewModel,
+                          policy: policy,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 class _RestrictionTabs extends StatelessWidget {
-  const _RestrictionTabs();
+  const _RestrictionTabs({required this.selected, required this.onChanged});
+
+  final String selected;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) => SegmentedButton<String>(
@@ -77,12 +108,10 @@ class _RestrictionTabs extends StatelessWidget {
       ButtonSegment(value: 'Website', label: Text('Website')),
       ButtonSegment(value: 'Games', label: Text('Games')),
     ],
-    selected: {'Apps'},
-    onSelectionChanged: _ignoreSelection,
+    selected: {selected},
+    onSelectionChanged: (values) => onChanged(values.first),
     showSelectedIcon: false,
   );
-
-  static void _ignoreSelection(Set<String> _) {}
 }
 
 class _PolicyRow extends StatelessWidget {

@@ -133,4 +133,55 @@ void main() {
     await tester.pump();
     expect(find.text('Screen time today'), findsOneWidget);
   });
+
+  testWidgets('home quick-access cards navigate to child destinations', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: ChildNavigationShell(viewModel: viewModel)),
+    );
+
+    await tester.tap(find.text('Restrictions'));
+    await tester.pump();
+    await tester.tap(find.text('Home'));
+    await tester.pump();
+    await tester.tap(find.text('Activity').first);
+    await tester.pump();
+    expect(find.text('Screen time today'), findsOneWidget);
+  });
+
+  testWidgets(
+    'restriction tabs switch between app, website, and game content',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(home: ChildRestrictionsScreen(viewModel: viewModel)),
+      );
+      expect(find.text('Daily app limits'), findsOneWidget);
+      expect(find.text('Website activity'), findsNothing);
+
+      await tester.tap(find.text('Website'));
+      await tester.pump();
+      expect(find.text('Website activity'), findsOneWidget);
+      expect(find.text('Daily app limits'), findsNothing);
+
+      await tester.tap(find.text('Games'));
+      await tester.pump();
+      expect(find.text('Game restrictions'), findsOneWidget);
+      expect(find.text('Example game'), findsOneWidget);
+    },
+  );
+
+  testWidgets('website safety tabs switch their unavailable state', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: ChildWebsiteSafetyScreen(viewModel: viewModel)),
+    );
+    expect(find.text('Website activity unavailable'), findsOneWidget);
+
+    await tester.tap(find.text('Blocked').first);
+    await tester.pump();
+    expect(find.text('Blocked websites unavailable'), findsOneWidget);
+    expect(find.text('Website activity unavailable'), findsNothing);
+  });
 }

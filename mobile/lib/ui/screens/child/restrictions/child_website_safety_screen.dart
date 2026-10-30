@@ -4,21 +4,32 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../view_model/child_view_model.dart';
 
-class ChildWebsiteSafetyScreen extends StatelessWidget {
+class ChildWebsiteSafetyScreen extends StatefulWidget {
   const ChildWebsiteSafetyScreen({super.key, required this.viewModel});
 
   final ChildViewModel viewModel;
 
   @override
+  State<ChildWebsiteSafetyScreen> createState() =>
+      _ChildWebsiteSafetyScreenState();
+}
+
+class _ChildWebsiteSafetyScreenState extends State<ChildWebsiteSafetyScreen> {
+  String _selectedTab = 'Summary';
+
+  @override
   Widget build(BuildContext context) => AnimatedBuilder(
-    animation: viewModel,
+    animation: widget.viewModel,
     builder: (context, _) => Scaffold(
       appBar: AppBar(title: const Text('Website safety')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.gap),
         children: [
-          _WebsiteTabs(),
-          SizedBox(height: 24),
+          _WebsiteTabs(
+            selected: _selectedTab,
+            onChanged: (value) => setState(() => _selectedTab = value),
+          ),
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(child: _SafetyMetric(label: 'Safe')),
@@ -29,17 +40,14 @@ class ChildWebsiteSafetyScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: 24),
-          Text('Recent activity', style: AppTextStyles.title),
-          SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('Website activity unavailable'),
-              subtitle: Text(
-                'The current child data contract does not provide website events or safety counts.',
-              ),
-            ),
+          Text(
+            _selectedTab == 'Summary'
+                ? 'Recent activity'
+                : '$_selectedTab websites',
+            style: AppTextStyles.title,
           ),
+          const SizedBox(height: 8),
+          _UnavailableWebsiteCard(tab: _selectedTab),
         ],
       ),
     ),
@@ -47,7 +55,10 @@ class ChildWebsiteSafetyScreen extends StatelessWidget {
 }
 
 class _WebsiteTabs extends StatelessWidget {
-  const _WebsiteTabs();
+  const _WebsiteTabs({required this.selected, required this.onChanged});
+
+  final String selected;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) => SegmentedButton<String>(
@@ -56,12 +67,31 @@ class _WebsiteTabs extends StatelessWidget {
       ButtonSegment(value: 'Blocked', label: Text('Blocked')),
       ButtonSegment(value: 'Allowed', label: Text('Allowed')),
     ],
-    selected: {'Summary'},
-    onSelectionChanged: _ignoreSelection,
+    selected: {selected},
+    onSelectionChanged: (values) => onChanged(values.first),
     showSelectedIcon: false,
   );
+}
 
-  static void _ignoreSelection(Set<String> _) {}
+class _UnavailableWebsiteCard extends StatelessWidget {
+  const _UnavailableWebsiteCard({required this.tab});
+
+  final String tab;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      leading: const Icon(Icons.info_outline),
+      title: Text(
+        tab == 'Summary'
+            ? 'Website activity unavailable'
+            : '$tab websites unavailable',
+      ),
+      subtitle: const Text(
+        'The current child data contract does not provide website events or safety counts.',
+      ),
+    ),
+  );
 }
 
 class _SafetyMetric extends StatelessWidget {

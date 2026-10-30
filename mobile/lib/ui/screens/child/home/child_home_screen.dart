@@ -8,9 +8,10 @@ import '../../../../services/child_runtime.dart';
 import '../view_model/child_view_model.dart';
 
 class ChildHomeScreen extends StatefulWidget {
-  const ChildHomeScreen({super.key, required this.viewModel});
+  const ChildHomeScreen({super.key, required this.viewModel, this.onNavigate});
 
   final ChildViewModel viewModel;
+  final ValueChanged<int>? onNavigate;
 
   @override
   State<ChildHomeScreen> createState() => _ChildHomeScreenState();
@@ -99,10 +100,30 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                           ),
                         ),
                       ),
+                    const SizedBox(height: AppSpacing.gap),
+                    const Text('Quick access', style: AppTextStyles.title),
+                    const SizedBox(height: AppSpacing.small),
+                    _HomeCard(
+                      icon: Icons.view_list_outlined,
+                      title: 'Activity',
+                      subtitle: 'See your activity status',
+                      onTap: () => widget.onNavigate?.call(1),
+                    ),
+                    _HomeCard(
+                      icon: Icons.grid_view_outlined,
+                      title: 'Restrictions',
+                      subtitle: 'View your current restrictions',
+                      onTap: () => widget.onNavigate?.call(2),
+                    ),
+                    _HomeCard(
+                      icon: Icons.settings_outlined,
+                      title: 'Settings',
+                      subtitle: 'Manage protection and device settings',
+                      onTap: () => widget.onNavigate?.call(3),
+                    ),
                   ],
                 ),
               ),
-              const _ChildNavigationBar(),
             ],
           ),
         ),
@@ -125,6 +146,31 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
     SyncState.unsupported => 'Unavailable',
     _ => 'Checking…',
   };
+}
+
+class _HomeCard extends StatelessWidget {
+  const _HomeCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(title, style: AppTextStyles.title),
+      subtitle: Text(subtitle, style: AppTextStyles.label),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    ),
+  );
 }
 
 class _ProtectionHero extends StatelessWidget {
@@ -216,51 +262,6 @@ class _StatusTile extends StatelessWidget {
           ),
         ),
         Icon(Icons.chevron_right, color: AppColors.muted),
-      ],
-    ),
-  );
-}
-
-class _ChildNavigationBar extends StatelessWidget {
-  const _ChildNavigationBar();
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 76,
-    child: Row(
-      children: const [
-        _NavigationItem(icon: Icons.home_outlined, label: 'Home', active: true),
-        _NavigationItem(icon: Icons.view_list_outlined, label: 'Activity'),
-        _NavigationItem(icon: Icons.grid_view_outlined, label: 'Restrictions'),
-        _NavigationItem(icon: Icons.settings_outlined, label: 'Settings'),
-      ],
-    ),
-  );
-}
-
-class _NavigationItem extends StatelessWidget {
-  const _NavigationItem({
-    required this.icon,
-    required this.label,
-    this.active = false,
-  });
-  final IconData icon;
-  final String label;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: active ? AppColors.primary : AppColors.muted),
-        Text(
-          label,
-          style: AppTextStyles.label.copyWith(
-            fontSize: 9,
-            color: active ? AppColors.primary : AppColors.muted,
-          ),
-        ),
       ],
     ),
   );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../child_screens.dart';
-import '../home/child_home_screen.dart';
+import '../activity/child_navigation_shell.dart';
 import '../view_model/child_view_model.dart';
 import 'enable_protection_screen.dart';
 import 'permissions_screen.dart';
@@ -46,11 +46,11 @@ class _ChildSetupFlowState extends State<ChildSetupFlow> {
         viewModel: widget.viewModel,
         onContinue: () => Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => ChildHomeScreen(viewModel: widget.viewModel),
+            builder: (_) => ChildNavigationShell(viewModel: widget.viewModel),
           ),
         ),
       ),
-      _ => ChildHomeScreen(viewModel: widget.viewModel),
+      _ => ChildNavigationShell(viewModel: widget.viewModel),
     };
   }
 }

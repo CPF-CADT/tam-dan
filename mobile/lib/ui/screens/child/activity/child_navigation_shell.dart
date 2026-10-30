@@ -23,7 +23,10 @@ class _ChildNavigationShellState extends State<ChildNavigationShell> {
     body: IndexedStack(
       index: _selectedIndex,
       children: [
-        ChildHomeScreen(viewModel: widget.viewModel),
+        ChildHomeScreen(
+          viewModel: widget.viewModel,
+          onNavigate: _selectDestination,
+        ),
         ChildActivityScreen(viewModel: widget.viewModel),
         ChildRestrictionsScreen(viewModel: widget.viewModel),
         ChildSettingsScreen(viewModel: widget.viewModel),
@@ -49,4 +52,9 @@ class _ChildNavigationShellState extends State<ChildNavigationShell> {
       ],
     ),
   );
+
+  void _selectDestination(int index) {
+    if (index < 0 || index > 3) return;
+    setState(() => _selectedIndex = index);
+  }
 }
