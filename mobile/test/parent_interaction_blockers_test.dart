@@ -184,7 +184,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Alex').last);
+    await tester.tap(find.text('Device status unavailable').first);
     await tester.pumpAndSettle();
     expect(find.text('Protection status unavailable'), findsOneWidget);
     await tester.scrollUntilVisible(

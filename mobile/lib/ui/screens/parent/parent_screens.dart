@@ -16,9 +16,6 @@ import 'view_model/parent_view_models.dart';
 
 part 'auth_screen.dart';
 part 'parent_screen.dart';
-part 'widgets/overview_tab.dart';
-part 'widgets/alerts_tab.dart';
-part 'widgets/policies_tab.dart';
 
 class _AuthScreen extends StatefulWidget {
   const _AuthScreen({required this.viewModel, required this.onAuthenticated});
@@ -521,6 +518,7 @@ class _ParentShellState extends State<_ParentShell> {
   }
 }
 
+// ignore: unused_element
 class _OverviewTab extends StatelessWidget {
   const _OverviewTab({
     required this.child,
@@ -637,6 +635,7 @@ class _OverviewTab extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _AlertsTab extends StatelessWidget {
   const _AlertsTab({required this.child, required this.viewModel});
   final Child child;
@@ -677,6 +676,7 @@ class _AlertsTab extends StatelessWidget {
   );
 }
 
+// ignore: unused_element
 class _PoliciesTab extends StatelessWidget {
   const _PoliciesTab({required this.child, required this.viewModel});
   final Child child;

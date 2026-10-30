@@ -5,6 +5,7 @@ import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/storage/secure_session_store.dart';
 import 'package:mobile/data/repositories/parent/parent_repository.dart';
 import 'package:mobile/main.dart';
+import 'package:mobile/ui/screens/parent/home/parent_home_screen.dart';
 
 class _FakeParentClient implements ApiClient {
   @override
@@ -79,8 +80,14 @@ void main() {
     await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Alex'), findsOneWidget);
-    expect(find.text('Overview'), findsWidgets);
-    expect(find.text('Devices'), findsOneWidget);
+    expect(find.text('Alex'), findsNWidgets(2));
+    expect(find.byType(ParentHomeScreen), findsOneWidget);
+    final navigation = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(
+      navigation.destinations.cast<NavigationDestination>().map(
+        (item) => item.label,
+      ),
+      ['Home', 'Activity', 'Controls', 'Settings'],
+    );
   });
 }

@@ -124,12 +124,16 @@ void main() {
       MaterialApp(home: ChildNavigationShell(viewModel: viewModel)),
     );
 
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Activity'), findsOneWidget);
-    expect(find.text('Restrictions'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
+    final navigation = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(navigation.destinations, hasLength(4));
+    expect(
+      navigation.destinations.cast<NavigationDestination>().map(
+        (item) => item.label,
+      ),
+      ['Home', 'Activity', 'Restrictions', 'Settings'],
+    );
 
-    await tester.tap(find.text('Activity'));
+    await tester.tap(find.byType(NavigationDestination).at(1));
     await tester.pump();
     expect(find.text('Screen time today'), findsOneWidget);
   });

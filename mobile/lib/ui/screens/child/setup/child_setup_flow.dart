@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../child_screens.dart';
 import '../activity/child_navigation_shell.dart';
 import '../view_model/child_view_model.dart';
+import 'child_pairing_screen.dart';
 import 'enable_protection_screen.dart';
 import 'permissions_screen.dart';
 import 'setup_complete_screen.dart';
