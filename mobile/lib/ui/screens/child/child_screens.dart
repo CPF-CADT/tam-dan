@@ -11,8 +11,9 @@ part 'child_status_screen.dart';
 part 'child_consent_screen.dart';
 
 class _ChildSetupScreen extends StatefulWidget {
-  const _ChildSetupScreen({required this.viewModel});
+  const _ChildSetupScreen({required this.viewModel, this.onPaired});
   final ChildViewModel viewModel;
+  final VoidCallback? onPaired;
 
   @override
   State<_ChildSetupScreen> createState() => _ChildSetupScreenState();
@@ -81,7 +82,7 @@ class _ChildSetupScreenState extends State<_ChildSetupScreen> {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
-          if (widget.viewModel.pairingState == PairingState.success)
+          if (widget.viewModel.pairingState == PairingState.success) ...[
             const Card(
               child: ListTile(
                 leading: Icon(Icons.check),
@@ -91,6 +92,11 @@ class _ChildSetupScreenState extends State<_ChildSetupScreen> {
                 ),
               ),
             ),
+            FilledButton(
+              onPressed: widget.onPaired,
+              child: const Text('Continue'),
+            ),
+          ],
         ],
       ),
     ),

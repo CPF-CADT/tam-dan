@@ -8,7 +8,8 @@ import 'data/repositories/child/child_repository.dart';
 import 'data/repositories/parent/parent_repository.dart';
 import 'services/child_secure_store.dart';
 import 'services/device_identity.dart';
-import 'ui/screens/child/child_screens.dart';
+import 'ui/screens/child/activity/child_navigation_shell.dart';
+import 'ui/screens/child/setup/child_setup_flow.dart';
 import 'ui/screens/child/view_model/child_view_model.dart';
 import 'ui/screens/parent/parent_screens.dart';
 import 'ui/screens/parent/view_model/parent_view_models.dart';
@@ -158,8 +159,8 @@ class _ChildAppState extends State<ChildApp> {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
       return snapshot.data!
-          ? ChildStatusScreen(viewModel: widget.viewModel)
-          : ChildSetupScreen(viewModel: widget.viewModel);
+          ? ChildNavigationShell(viewModel: widget.viewModel)
+          : ChildSetupFlow(viewModel: widget.viewModel);
     },
   );
 }

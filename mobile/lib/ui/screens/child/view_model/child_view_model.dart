@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../data/repositories/child/child_repository.dart';
 import '../../../../model/child_models.dart';
+import '../../../../services/child_runtime.dart';
 import '../../../../services/device_identity.dart';
 
 class ChildViewModel extends ChangeNotifier {
@@ -10,15 +11,47 @@ class ChildViewModel extends ChangeNotifier {
     this._repository,
     this._store, {
     DeviceIdentityProvider? identityProvider,
-  }) : _identityProvider = identityProvider ?? AndroidDeviceIdentityProvider();
+    ChildRuntimeAdapter? runtimeAdapter,
+  }) : _identityProvider = identityProvider ?? AndroidDeviceIdentityProvider(),
+       _runtimeAdapter = runtimeAdapter ?? AndroidChildRuntimeAdapter();
   final ChildRepository _repository;
   final ChildDeviceStore _store;
   final DeviceIdentityProvider _identityProvider;
+  final ChildRuntimeAdapter _runtimeAdapter;
   PairingState pairingState = PairingState.idle;
   String? pairingError;
   ChildStatusState state = const ChildStatusState();
+  ChildRuntimeStatus? runtimeStatus;
+  bool runtimeLoading = false;
 
   Future<ChildDeviceContext?> readStoredDevice() => _store.readDevice();
+
+  Future<void> refreshRuntimeStatus() async {
+    runtimeLoading = true;
+    notifyListeners();
+    try {
+      runtimeStatus = await _runtimeAdapter.readStatus();
+    } finally {
+      runtimeLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> requestPermission(ChildPermissionKind kind) async {
+    await _runtimeAdapter.requestPermission(kind);
+    await refreshRuntimeStatus();
+  }
+
+  Future<void> startMonitoring() async {
+    runtimeLoading = true;
+    notifyListeners();
+    try {
+      runtimeStatus = await _runtimeAdapter.startMonitoring();
+    } finally {
+      runtimeLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> pair({
     required String code,
