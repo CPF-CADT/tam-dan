@@ -20,8 +20,6 @@ class ChildPermissionsScreen extends StatelessWidget {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: viewModel,
     builder: (context, _) {
-      final permission =
-          viewModel.runtimeStatus?.permission ?? PermissionState.unknown;
       return ChildSetupScaffold(
         child: Column(
           children: [
@@ -47,10 +45,16 @@ class ChildPermissionsScreen extends StatelessWidget {
               icon: Icons.view_list_outlined,
               title: 'Usage access',
               subtitle: 'See which apps are used and for how long.',
-              action: _action(permission),
+              action: _action(
+                viewModel.permissionFor(ChildPermissionKind.usageAccess),
+                retry: viewModel.runtimeError != null,
+              ),
               onAction: () =>
                   viewModel.requestPermission(ChildPermissionKind.usageAccess),
-              actionEnabled: permission != PermissionState.granted,
+              actionEnabled:
+                  !viewModel.runtimeLoading &&
+                  viewModel.permissionFor(ChildPermissionKind.usageAccess) !=
+                      PermissionState.granted,
             ),
             const SizedBox(height: AppSpacing.small),
             const ChildStatusRow(
@@ -65,9 +69,7 @@ class ChildPermissionsScreen extends StatelessWidget {
               icon: Icons.notifications_none,
               title: 'Notification access',
               subtitle: 'Detect important activity.',
-              action: permission == PermissionState.granted
-                  ? 'Granted'
-                  : 'Unavailable',
+              action: 'Unavailable',
               actionEnabled: false,
             ),
             const SizedBox(height: AppSpacing.small),
@@ -86,9 +88,11 @@ class ChildPermissionsScreen extends StatelessWidget {
     },
   );
 
-  String _action(PermissionState permission) => switch (permission) {
-    PermissionState.granted => 'Granted',
-    PermissionState.unavailable => 'Unavailable',
-    _ => 'Grant',
-  };
+  String _action(PermissionState permission, {required bool retry}) =>
+      switch (permission) {
+        PermissionState.granted => 'Granted',
+        PermissionState.unavailable => 'Unavailable',
+        _ when retry => 'Retry',
+        _ => 'Grant',
+      };
 }

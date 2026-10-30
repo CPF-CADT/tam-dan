@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/network/api_client.dart';
+import '../../../../core/utils/safe_error_message.dart';
 import '../../../../data/repositories/child/child_repository.dart';
 import '../../../../model/child_models.dart';
 import '../../../../services/child_runtime.dart';
@@ -23,14 +24,18 @@ class ChildViewModel extends ChangeNotifier {
   ChildStatusState state = const ChildStatusState();
   ChildRuntimeStatus? runtimeStatus;
   bool runtimeLoading = false;
+  String? runtimeError;
 
   Future<ChildDeviceContext?> readStoredDevice() => _store.readDevice();
 
   Future<void> refreshRuntimeStatus() async {
     runtimeLoading = true;
+    runtimeError = null;
     notifyListeners();
     try {
       runtimeStatus = await _runtimeAdapter.readStatus();
+    } catch (error) {
+      runtimeError = safeErrorMessage(error);
     } finally {
       runtimeLoading = false;
       notifyListeners();
@@ -38,8 +43,26 @@ class ChildViewModel extends ChangeNotifier {
   }
 
   Future<void> requestPermission(ChildPermissionKind kind) async {
-    await _runtimeAdapter.requestPermission(kind);
-    await refreshRuntimeStatus();
+    runtimeLoading = true;
+    runtimeError = null;
+    notifyListeners();
+    try {
+      await _runtimeAdapter.requestPermission(kind);
+      // A request does not grant access. Only a fresh platform status may do so.
+      runtimeStatus = await _runtimeAdapter.readStatus();
+    } catch (error) {
+      runtimeError = safeErrorMessage(error);
+    } finally {
+      runtimeLoading = false;
+      notifyListeners();
+    }
+  }
+
+  PermissionState permissionFor(ChildPermissionKind kind) {
+    if (kind != ChildPermissionKind.usageAccess) {
+      return PermissionState.unavailable;
+    }
+    return runtimeStatus?.permission ?? PermissionState.unknown;
   }
 
   Future<void> startMonitoring() async {
@@ -73,10 +96,10 @@ class ChildViewModel extends ChangeNotifier {
       pairingState = PairingState.success;
     } on ApiException catch (error) {
       pairingState = _pairingState(error);
-      pairingError = error.message;
+      pairingError = safeErrorMessage(error);
     } catch (error) {
       pairingState = PairingState.failed;
-      pairingError = error.toString();
+      pairingError = safeErrorMessage(error);
     }
     notifyListeners();
   }
@@ -90,7 +113,15 @@ class ChildViewModel extends ChangeNotifier {
         error: null,
       );
     } on ApiException catch (error) {
-      state = state.copyWith(status: _status(error), error: error.message);
+      state = state.copyWith(
+        status: _status(error),
+        error: safeErrorMessage(error),
+      );
+    } catch (error) {
+      state = state.copyWith(
+        status: ChildLoadStatus.failed,
+        error: safeErrorMessage(error),
+      );
     }
     notifyListeners();
   }
@@ -126,14 +157,14 @@ class ChildViewModel extends ChangeNotifier {
       state = state.copyWith(
         status: revoked ? ChildLoadStatus.revoked : _status(error),
         isLastKnown: stored != null,
-        error: error.message,
+        error: safeErrorMessage(error),
         clearDevice: revoked,
       );
     } catch (error) {
       state = state.copyWith(
         status: ChildLoadStatus.failed,
         isLastKnown: stored != null,
-        error: error.toString(),
+        error: safeErrorMessage(error),
       );
     }
     notifyListeners();
@@ -183,7 +214,7 @@ class PermissionGuidanceViewModel extends ChangeNotifier {
       error = null;
     } catch (value) {
       state = PermissionState.unavailable;
-      error = value.toString();
+      error = safeErrorMessage(value);
     }
     notifyListeners();
   }
@@ -194,7 +225,7 @@ class PermissionGuidanceViewModel extends ChangeNotifier {
       error = null;
     } catch (value) {
       state = PermissionState.unavailable;
-      error = value.toString();
+      error = safeErrorMessage(value);
     }
     notifyListeners();
   }

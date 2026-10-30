@@ -94,7 +94,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.gap),
                         child: Text(
-                          'Status unavailable: ${widget.viewModel.state.error}',
+                          widget.viewModel.state.error!,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.error,
                           ),

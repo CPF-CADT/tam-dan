@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/data/repositories/child/child_repository.dart';
 import 'package:mobile/model/child_models.dart';
+import 'package:mobile/services/child_runtime.dart';
 import 'package:mobile/services/device_identity.dart';
 import 'package:mobile/ui/screens/child/view_model/child_view_model.dart';
 
@@ -73,6 +74,36 @@ class _ChildRepository implements ChildRepository {
 
   @override
   Future<void> clearDevice() => store.clearProtectedState();
+}
+
+class _RuntimeAdapter implements ChildRuntimeAdapter {
+  _RuntimeAdapter(this.status);
+
+  ChildRuntimeStatus status;
+  Object? requestError;
+  bool grantOnRequest = false;
+
+  @override
+  Future<ChildRuntimeStatus> readStatus() async {
+    if (requestError != null) throw requestError!;
+    return status;
+  }
+
+  @override
+  Future<void> requestPermission(ChildPermissionKind kind) async {
+    if (requestError != null) throw requestError!;
+    if (grantOnRequest) {
+      status = ChildRuntimeStatus(
+        monitoring: status.monitoring,
+        sync: status.sync,
+        permission: PermissionState.granted,
+        vpn: status.vpn,
+      );
+    }
+  }
+
+  @override
+  Future<ChildRuntimeStatus> startMonitoring() async => status;
 }
 
 void main() {
@@ -212,5 +243,81 @@ void main() {
     expect(viewModel.state, PermissionState.denied);
     await viewModel.request();
     expect(viewModel.state, PermissionState.granted);
+  });
+
+  test('child errors are bounded and never expose backend details', () async {
+    final repository = _ChildRepository()
+      ..pairingError = const ApiException(
+        500,
+        'org.postgresql.util.PSQLException: SELECT * FROM child_devices',
+      );
+    final viewModel = ChildViewModel(
+      repository,
+      repository.store,
+      identityProvider: const _TestDeviceIdentityProvider(),
+    );
+
+    await viewModel.pair(code: 'code', appVersion: '1', displayName: 'Tablet');
+
+    expect(viewModel.pairingError, 'Something went wrong. Please try again.');
+    expect(viewModel.pairingError, isNot(contains('postgresql')));
+    expect(viewModel.pairingError, isNot(contains('SELECT')));
+  });
+
+  test(
+    'permission request does not fake a grant after a denied result',
+    () async {
+      final runtime = _RuntimeAdapter(
+        const ChildRuntimeStatus(
+          monitoring: MonitoringState.permissionDenied,
+          sync: SyncState.current,
+          permission: PermissionState.denied,
+          vpn: ChildCapabilityState.unsupported,
+        ),
+      );
+      final repository = _ChildRepository();
+      final viewModel = ChildViewModel(
+        repository,
+        repository.store,
+        runtimeAdapter: runtime,
+      );
+
+      await viewModel.requestPermission(ChildPermissionKind.usageAccess);
+
+      expect(
+        viewModel.permissionFor(ChildPermissionKind.usageAccess),
+        PermissionState.denied,
+      );
+      expect(
+        viewModel.permissionFor(ChildPermissionKind.notifications),
+        PermissionState.unavailable,
+      );
+    },
+  );
+
+  test('runtime failures become safe retryable state', () async {
+    final runtime = _RuntimeAdapter(
+      const ChildRuntimeStatus(
+        monitoring: MonitoringState.permissionDenied,
+        sync: SyncState.current,
+        permission: PermissionState.denied,
+        vpn: ChildCapabilityState.unsupported,
+      ),
+    )..requestError = StateError('java.sql.SQLException: raw platform failure');
+    final repository = _ChildRepository();
+    final viewModel = ChildViewModel(
+      repository,
+      repository.store,
+      runtimeAdapter: runtime,
+    );
+
+    await viewModel.requestPermission(ChildPermissionKind.usageAccess);
+
+    expect(viewModel.runtimeError, 'Something went wrong. Please try again.');
+    expect(viewModel.runtimeError, isNot(contains('SQLException')));
+    expect(
+      viewModel.permissionFor(ChildPermissionKind.usageAccess),
+      isNot(PermissionState.granted),
+    );
   });
 }
