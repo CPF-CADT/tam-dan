@@ -13,6 +13,7 @@ class ChildOverviewScreen extends StatefulWidget {
     required this.policies,
     required this.onActivity,
     required this.onControls,
+    required this.onWebsiteSafety,
   });
   final Child child;
   final DeviceViewModel devices;
@@ -20,6 +21,7 @@ class ChildOverviewScreen extends StatefulWidget {
   final PolicyViewModel policies;
   final VoidCallback onActivity;
   final VoidCallback onControls;
+  final VoidCallback onWebsiteSafety;
 
   @override
   State<ChildOverviewScreen> createState() => _ChildOverviewScreenState();
@@ -73,7 +75,16 @@ class _ChildOverviewScreenState extends State<ChildOverviewScreen> {
           ),
           child: Column(
             children: [
-              const _LargeStatus(icon: Icons.check, label: 'Protected now'),
+              _LargeStatus(
+                icon: device?.status == DeviceStatus.active
+                    ? Icons.check
+                    : Icons.help_outline,
+                label: device == null
+                    ? 'Protection status unavailable'
+                    : device.status == DeviceStatus.active
+                    ? 'Protected now'
+                    : 'Protection not active',
+              ),
               const SizedBox(height: 14),
               Text(
                 device == null
@@ -115,7 +126,7 @@ class _ChildOverviewScreenState extends State<ChildOverviewScreen> {
           icon: Icons.language,
           title: 'Website safety',
           detail: 'Domain enforcement is unsupported',
-          onTap: null,
+          onTap: widget.onWebsiteSafety,
         ),
         const SizedBox(height: 10),
         Card(
@@ -148,10 +159,26 @@ class _LargeStatus extends StatelessWidget {
   final IconData icon;
   final String label;
   @override
-  Widget build(BuildContext context) => CircleAvatar(
-    radius: 40,
-    backgroundColor: ParentVisualTokens.primary,
-    child: Icon(icon, color: Colors.white, size: 34),
+  Widget build(BuildContext context) => Column(
+    children: [
+      Semantics(
+        label: label,
+        child: CircleAvatar(
+          radius: 40,
+          backgroundColor: ParentVisualTokens.primary,
+          child: Icon(icon, color: Colors.white, size: 34),
+        ),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        label,
+        style: const TextStyle(
+          color: ParentVisualTokens.primary,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ],
   );
 }
 

@@ -8,6 +8,7 @@ import '../../states/state_message.dart';
 import 'activity/activity_summary_screen.dart';
 import 'alerts/safety_alerts_screen.dart';
 import 'controls/controls_hub_screen.dart';
+import 'controls/website_safety_screen.dart';
 import 'device/child_overview_screen.dart';
 import 'home/parent_home_screen.dart';
 import 'settings/device_settings_screen.dart';
@@ -367,6 +368,7 @@ class _ParentShell extends StatefulWidget {
 class _ParentShellState extends State<_ParentShell> {
   int tab = 0;
   bool deviceDetail = false;
+  bool websiteSafetyDetail = false;
   @override
   void initState() {
     super.initState();
@@ -389,6 +391,7 @@ class _ParentShellState extends State<_ParentShell> {
                     onSelected: (value) => setState(() {
                       children.select(value);
                       deviceDetail = false;
+                      websiteSafetyDetail = false;
                     }),
                     itemBuilder: (context) => [
                       for (final option
@@ -447,6 +450,12 @@ class _ParentShellState extends State<_ParentShell> {
                         onControls: () => setState(() {
                           deviceDetail = false;
                           tab = 2;
+                          websiteSafetyDetail = false;
+                        }),
+                        onWebsiteSafety: () => setState(() {
+                          deviceDetail = false;
+                          tab = 2;
+                          websiteSafetyDetail = true;
                         }),
                       )
                     : ParentHomeScreen(
@@ -456,11 +465,28 @@ class _ParentShellState extends State<_ParentShell> {
                         alerts: widget.alerts,
                         onOpenDevice: () => setState(() => deviceDetail = true),
                         onOpenActivity: () => setState(() => tab = 1),
+                        onOpenAlerts: () => Navigator.of(context).push<void>(
+                          MaterialPageRoute(
+                            builder: (_) => SafetyAlertsScreen(
+                              child: child,
+                              viewModel: widget.alerts,
+                            ),
+                          ),
+                        ),
                       ))
               : tab == 1
               ? ActivitySummaryScreen(child: child, viewModel: widget.reports)
               : tab == 2
-              ? ControlsHubScreen(child: child, viewModel: widget.policies)
+              ? websiteSafetyDetail
+                    ? WebsiteSafetyScreen(
+                        child: child,
+                        viewModel: widget.policies,
+                        showBottomNavigation: false,
+                      )
+                    : ControlsHubScreen(
+                        child: child,
+                        viewModel: widget.policies,
+                      )
               : DeviceSettingsScreen(
                   child: child,
                   devices: widget.devices,
@@ -469,7 +495,10 @@ class _ParentShellState extends State<_ParentShell> {
                 ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: tab,
-            onDestinationSelected: (value) => setState(() => tab = value),
+            onDestinationSelected: (value) => setState(() {
+              tab = value;
+              websiteSafetyDetail = false;
+            }),
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.home_outlined),

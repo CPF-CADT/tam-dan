@@ -13,6 +13,7 @@ class ParentHomeScreen extends StatefulWidget {
     required this.alerts,
     required this.onOpenDevice,
     required this.onOpenActivity,
+    required this.onOpenAlerts,
   });
 
   final Child child;
@@ -21,6 +22,7 @@ class ParentHomeScreen extends StatefulWidget {
   final AlertViewModel alerts;
   final VoidCallback onOpenDevice;
   final VoidCallback onOpenActivity;
+  final VoidCallback onOpenAlerts;
 
   @override
   State<ParentHomeScreen> createState() => _ParentHomeScreenState();
@@ -87,7 +89,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
         onActivity: widget.onOpenActivity,
       ),
       const SizedBox(height: 18),
-      _AlertCard(viewModel: widget.alerts),
+      _AlertCard(viewModel: widget.alerts, onTap: widget.onOpenAlerts),
       const SizedBox(height: 18),
       _ProtectionCard(devices: widget.devices),
     ],
@@ -198,8 +200,9 @@ class _MetricsCard extends StatelessWidget {
 }
 
 class _AlertCard extends StatelessWidget {
-  const _AlertCard({required this.viewModel});
+  const _AlertCard({required this.viewModel, required this.onTap});
   final AlertViewModel viewModel;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -212,45 +215,49 @@ class _AlertCard extends StatelessWidget {
         (viewModel.state.status == LoadStatus.empty
             ? 'No alerts need review'
             : 'Alert details unavailable');
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: ParentVisualTokens.warningSurface,
+    return Material(
+      color: ParentVisualTokens.warningSurface,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          const _Badge(
-            icon: Icons.warning_amber_rounded,
-            color: ParentVisualTokens.warning,
-            size: 46,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${open.length} alerts need review',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: ParentVisualTokens.ink,
-                  ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const _Badge(
+                icon: Icons.warning_amber_rounded,
+                color: ParentVisualTokens.warning,
+                size: 46,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${open.length} alerts need review',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: ParentVisualTokens.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      detail,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: ParentVisualTokens.muted,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  detail,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: ParentVisualTokens.muted,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

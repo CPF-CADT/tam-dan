@@ -18,21 +18,6 @@ class AppRuleScreen extends StatefulWidget {
 
 class _AppRuleScreenState extends State<AppRuleScreen> {
   String access = 'limit';
-  bool schedule = false;
-  bool saving = false;
-
-  Future<void> _save() async {
-    setState(() => saving = true);
-    await widget.viewModel.create(
-      widget.child.id,
-      PolicyType.application,
-      'YouTube',
-    );
-    if (mounted) setState(() => saving = false);
-    if (mounted && widget.viewModel.message == null) {
-      Navigator.of(context).pop();
-    }
-  }
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -84,16 +69,18 @@ class _AppRuleScreenState extends State<AppRuleScreen> {
       Card(
         child: RadioGroup<String>(
           groupValue: access,
-          onChanged: (value) => setState(() => access = value!),
+          onChanged: (_) {},
           child: Column(
             children: [
               RadioListTile<String>(
                 value: 'allow',
+                enabled: false,
                 title: const Text('Allow'),
                 subtitle: const Text('Full access'),
               ),
               RadioListTile<String>(
                 value: 'limit',
+                enabled: false,
                 title: const Text('Limit'),
                 subtitle: const Text(
                   'Policy target only; duration is not supported by the API',
@@ -101,6 +88,7 @@ class _AppRuleScreenState extends State<AppRuleScreen> {
               ),
               RadioListTile<String>(
                 value: 'block',
+                enabled: false,
                 title: const Text('Block'),
                 subtitle: const Text('No access'),
               ),
@@ -119,7 +107,7 @@ class _AppRuleScreenState extends State<AppRuleScreen> {
       ),
       Card(
         child: SwitchListTile(
-          value: schedule,
+          value: false,
           onChanged: null,
           title: const Text('School days'),
           subtitle: const Text(
@@ -128,24 +116,17 @@ class _AppRuleScreenState extends State<AppRuleScreen> {
         ),
       ),
       const SizedBox(height: 12),
-      if (widget.viewModel.message != null)
-        Text(
-          widget.viewModel.message!,
-          style: const TextStyle(color: ParentVisualTokens.error),
+      Card(
+        color: ParentVisualTokens.warningSurface,
+        child: const ListTile(
+          leading: Icon(Icons.info_outline, color: ParentVisualTokens.warning),
+          title: Text('Access modes are unavailable'),
+          subtitle: Text(
+            'The current policy API does not represent Allow, Limit, or Block for an app. No policy will be saved.',
+          ),
         ),
-      FilledButton(
-        onPressed: saving ? null : _save,
-        child: saving
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : const Text('Save app rule'),
       ),
+      FilledButton(onPressed: null, child: const Text('Save app rule')),
     ],
   );
 }
