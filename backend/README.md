@@ -53,6 +53,16 @@ For production:
 SPRING_PROFILES_ACTIVE=prod java -jar target/tamdan-*.jar
 ```
 
+## Optional demo data
+
+Demo data is development-only and disabled by default. Activate it explicitly with:
+
+```bash
+SPRING_PROFILES_ACTIVE=dev TAMDAN_DEMO_DATA_ENABLED=true ./mvnw spring-boot:run
+```
+
+The fixture is deterministic and safe to run repeatedly. The local-only parent login is `demo.parent@example.test` with password `TamDan-Demo-2026!`. Credentials are never written to logs. The `prod` profile never creates the fixture, even if `TAMDAN_DEMO_DATA_ENABLED=true` is present.
+
 ## Database
 
 Development uses PostgreSQL running on the local machine at `localhost:5432`.

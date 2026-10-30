@@ -46,6 +46,10 @@ spring:
   thymeleaf:
     cache: false
 
+tamdan:
+  demo-data:
+    enabled: ${TAMDAN_DEMO_DATA_ENABLED:false}
+
 server:
   port: 8080
   # make sure requests the proxy uri instead of the server one
