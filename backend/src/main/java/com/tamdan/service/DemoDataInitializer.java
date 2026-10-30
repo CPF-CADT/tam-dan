@@ -94,7 +94,6 @@ public class DemoDataInitializer implements ApplicationRunner {
 
         SafetyPolicy policy = ensurePolicy(childA);
         ensureDeliveryAcknowledgement(policy, deviceA, DEMO_BASE_TIME.plus(2, ChronoUnit.HOURS));
-        ensureDeliveryAcknowledgement(policy, deviceB, DEMO_BASE_TIME.plus(2, ChronoUnit.HOURS));
         policy.activate();
 
         ensureAuditEvent(family, parent, "demo-fixture-seeded-v1", "DEMO_FIXTURE", "SUCCESS");
@@ -174,6 +173,9 @@ public class DemoDataInitializer implements ApplicationRunner {
     }
 
     private void ensureDeliveryAcknowledgement(SafetyPolicy policy, ChildDevice device, Instant reportedAt) {
+        if (!policy.getChildProfile().getId().equals(device.getChildProfile().getId())) {
+            throw new IllegalArgumentException("Demo policy delivery must belong to the policy child");
+        }
         PolicyDelivery delivery = policyDeliveryRepository.findByPolicyIdAndChildDeviceId(policy.getId(), device.getId()).orElseGet(() ->
             policyDeliveryRepository.save(PolicyDelivery.pending(policy, device))
         );
