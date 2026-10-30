@@ -5,7 +5,7 @@ import com.tamdan.dto.SafetyDto.AlertReviewRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.security.AuthenticatedUserIdResolver;
 import com.tamdan.security.AuthoritiesConstants;
-import com.tamdan.service.AlertService;
+import com.tamdan.service.safety.AlertService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

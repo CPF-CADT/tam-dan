@@ -4,7 +4,7 @@ import com.tamdan.dto.request.CreatePairingCodeRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.PairingCodeResponse;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.PairingService;
+import com.tamdan.service.device.PairingService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

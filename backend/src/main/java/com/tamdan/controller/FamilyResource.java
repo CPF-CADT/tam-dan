@@ -3,7 +3,7 @@ package com.tamdan.controller;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.FamilyResponse;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.FamilyService;
+import com.tamdan.service.family.FamilyService;
 import com.tamdan.web.ApiPaths;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

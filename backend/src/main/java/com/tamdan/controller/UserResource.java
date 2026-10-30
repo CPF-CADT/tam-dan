@@ -9,7 +9,7 @@ import com.tamdan.exception.BadRequestException;
 import com.tamdan.mail.MailService;
 import com.tamdan.mapper.UserMapper;
 import com.tamdan.security.AuthoritiesConstants;
-import com.tamdan.service.UserService;
+import com.tamdan.service.auth.UserService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;

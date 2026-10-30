@@ -5,7 +5,7 @@ import com.tamdan.dto.request.RefreshRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.TokenResponse;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.AuthenticationService;
+import com.tamdan.service.auth.AuthenticationService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.security.Principal;

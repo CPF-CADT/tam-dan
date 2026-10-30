@@ -4,7 +4,7 @@ import com.tamdan.dto.request.AuditSearchRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.AuditResponse;
 import com.tamdan.dto.response.PageResponse;
-import com.tamdan.service.AuditService;
+import com.tamdan.service.consent.AuditService;
 import com.tamdan.web.ApiPaths;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;

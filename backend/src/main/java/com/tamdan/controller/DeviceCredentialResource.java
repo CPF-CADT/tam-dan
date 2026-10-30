@@ -3,7 +3,7 @@ package com.tamdan.controller;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.DeviceCredentialResponse;
 import com.tamdan.security.AuthenticatedDeviceIdResolver;
-import com.tamdan.service.DeviceCredentialService;
+import com.tamdan.service.device.DeviceCredentialService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

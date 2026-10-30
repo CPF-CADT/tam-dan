@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.tamdan.dto.request.ConsentDisclosureConfirmation;
 import com.tamdan.security.AuthenticatedDeviceIdResolver;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.ConsentService;
+import com.tamdan.service.consent.ConsentService;
 import java.time.Instant;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

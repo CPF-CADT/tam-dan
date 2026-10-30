@@ -2,19 +2,41 @@ package com.tamdan.security;
 
 import static com.tamdan.security.JwtAuthenticationTestUtils.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.tamdan.service.auth.AuthenticationService;
+import com.tamdan.config.DeviceAuthenticationFilter;
+import com.tamdan.service.device.DeviceCredentialService;
 
 @AutoConfigureMockMvc
 @AuthenticationIntegrationTest
+@org.springframework.context.annotation.Import(DeviceAuthenticationFilter.class)
 class TokenAuthenticationIT {
+
+    @MockitoBean
+    private AuthenticationService authenticationService;
+
+    @MockitoBean
+    private AuthenticatedUserIdResolver authenticatedUserIdResolver;
+
+    @MockitoBean
+    private DeviceCredentialService deviceCredentialService;
+
+    @BeforeEach
+    void rejectDeviceCredentialsInThisContext() {
+        when(deviceCredentialService.authenticate(anyString())).thenThrow(new IllegalArgumentException("invalid test credential"));
+    }
 
     @Autowired
     private MockMvc mvc;

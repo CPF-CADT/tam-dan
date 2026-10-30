@@ -5,7 +5,7 @@ import com.tamdan.dto.response.DeviceResponse;
 import com.tamdan.dto.response.DeviceCredentialResponse;
 import com.tamdan.dto.request.RenameDeviceRequest;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.DeviceService;
+import com.tamdan.service.device.DeviceService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.util.List;

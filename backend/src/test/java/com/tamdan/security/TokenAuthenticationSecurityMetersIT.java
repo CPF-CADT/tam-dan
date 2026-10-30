@@ -13,10 +13,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.tamdan.service.auth.AuthenticationService;
+import com.tamdan.config.DeviceAuthenticationFilter;
+import com.tamdan.service.device.DeviceCredentialService;
 
 @AutoConfigureMockMvc
 @AuthenticationIntegrationTest
+@org.springframework.context.annotation.Import(DeviceAuthenticationFilter.class)
 class TokenAuthenticationSecurityMetersIT {
+
+    @MockitoBean
+    private AuthenticationService authenticationService;
+
+    @MockitoBean
+    private AuthenticatedUserIdResolver authenticatedUserIdResolver;
+
+    @MockitoBean
+    private DeviceCredentialService deviceCredentialService;
 
     private static final String INVALID_TOKENS_METER_EXPECTED_NAME = "security.authentication.invalid-tokens";
 

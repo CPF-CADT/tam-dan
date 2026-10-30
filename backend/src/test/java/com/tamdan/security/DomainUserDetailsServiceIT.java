@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import com.tamdan.IntegrationTest;
 import com.tamdan.entities.User;
 import com.tamdan.repository.UserRepository;
-import com.tamdan.service.UserService;
+import com.tamdan.service.auth.UserService;
 import java.util.Locale;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;

@@ -5,7 +5,7 @@ import com.tamdan.dto.request.UpdateChildRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.ChildProfileResponse;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.ChildProfileService;
+import com.tamdan.service.family.ChildProfileService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.util.List;

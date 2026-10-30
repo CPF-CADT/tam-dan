@@ -3,7 +3,7 @@ package com.tamdan.controller;
 import com.tamdan.dto.request.CompletePairingRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.DeviceCredentialResponse;
-import com.tamdan.service.PairingService;
+import com.tamdan.service.device.PairingService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

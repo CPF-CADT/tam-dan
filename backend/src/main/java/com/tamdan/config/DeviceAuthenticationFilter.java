@@ -2,7 +2,7 @@ package com.tamdan.config;
 
 import com.tamdan.security.AuthenticatedDeviceContext;
 import com.tamdan.security.AuthoritiesConstants;
-import com.tamdan.service.DeviceCredentialService;
+import com.tamdan.service.device.DeviceCredentialService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

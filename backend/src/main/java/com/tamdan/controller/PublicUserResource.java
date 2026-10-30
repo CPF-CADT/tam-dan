@@ -4,7 +4,7 @@ import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.PageResponse;
 import com.tamdan.dto.response.UserDTO;
 import com.tamdan.exception.BadRequestException;
-import com.tamdan.service.UserService;
+import com.tamdan.service.auth.UserService;
 import com.tamdan.web.ApiPaths;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

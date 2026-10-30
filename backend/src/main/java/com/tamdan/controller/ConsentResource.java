@@ -6,7 +6,7 @@ import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.ConsentResponse;
 import com.tamdan.security.AuthenticatedDeviceIdResolver;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.ConsentService;
+import com.tamdan.service.consent.ConsentService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.util.List;

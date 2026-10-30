@@ -4,7 +4,7 @@ import com.tamdan.dto.request.AuthorityRequest;
 import com.tamdan.dto.response.ApiResponse;
 import com.tamdan.dto.response.AuthorityResponse;
 import com.tamdan.security.AuthoritiesConstants;
-import com.tamdan.service.AuthorityService;
+import com.tamdan.service.auth.AuthorityService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import java.net.URI;

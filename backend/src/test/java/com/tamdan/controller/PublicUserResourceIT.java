@@ -8,7 +8,7 @@ import com.tamdan.IntegrationTest;
 import com.tamdan.entities.User;
 import com.tamdan.repository.UserRepository;
 import com.tamdan.security.AuthoritiesConstants;
-import com.tamdan.service.UserService;
+import com.tamdan.service.auth.UserService;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

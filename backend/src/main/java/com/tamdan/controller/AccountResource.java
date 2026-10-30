@@ -9,7 +9,7 @@ import com.tamdan.dto.response.ParentAccountResponse;
 import com.tamdan.exception.BadRequestException;
 import com.tamdan.mail.MailService;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.UserService;
+import com.tamdan.service.auth.UserService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

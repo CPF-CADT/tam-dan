@@ -6,7 +6,7 @@ import com.tamdan.dto.response.DeviceCredentialResponse;
 import com.tamdan.dto.response.PairingCodeResponse;
 import com.tamdan.dto.response.PairingCompletionResponse;
 import com.tamdan.security.AuthenticatedUserIdResolver;
-import com.tamdan.service.PairingService;
+import com.tamdan.service.device.PairingService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
