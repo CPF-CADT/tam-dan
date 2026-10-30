@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/storage/secure_session_store.dart';
@@ -67,6 +69,38 @@ class _FailingRepository implements ParentRepository {
 }
 
 void main() {
+  test(
+    'registration keeps the existing contract and exposes loading state',
+    () async {
+      final repository = _TrackingRepository();
+      final auth = AuthViewModel(repository)..registerMode = true;
+
+      final submission = auth.submit(
+        'parent',
+        'password',
+        email: 'parent@example.com',
+      );
+      expect(auth.state.status, LoadStatus.loading);
+      expect(repository.registered, isTrue);
+
+      repository.complete();
+      expect(await submission, isTrue);
+      expect(auth.state.status, LoadStatus.ready);
+    },
+  );
+
+  test('auth errors never expose raw backend or SQL text', () async {
+    final auth = AuthViewModel(_SqlFailingRepository());
+
+    expect(await auth.submit('parent', 'password'), isFalse);
+    expect(
+      auth.message,
+      'We couldn’t sign you in. Check your details and try again.',
+    );
+    expect(auth.message, isNot(contains('SELECT')));
+    expect(auth.message, isNot(contains('org.postgresql')));
+  });
+
   test('ViewModels expose offline and unauthorized recovery states', () async {
     final auth = AuthViewModel(_FailingRepository());
     expect(await auth.submit('parent', 'password'), isFalse);
@@ -89,6 +123,36 @@ void main() {
       expect(await store.readRefreshToken(), isNull);
     },
   );
+}
+
+class _SqlFailingRepository extends _FailingRepository {
+  @override
+  Future<void> login(
+    String login,
+    String password,
+  ) async => throw const ApiException(
+    500,
+    'org.postgresql.util.PSQLException: SELECT * FROM users WHERE password = ...',
+  );
+}
+
+class _TrackingRepository extends _FailingRepository {
+  final _registration = Completer<void>();
+  bool registered = false;
+
+  @override
+  Future<void> register({
+    required String login,
+    required String email,
+    required String password,
+    String? firstName,
+    String? lastName,
+  }) async {
+    registered = true;
+    await _registration.future;
+  }
+
+  void complete() => _registration.complete();
 }
 
 class _NoopClient implements ApiClient {

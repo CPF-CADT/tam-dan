@@ -47,88 +47,310 @@ class _AuthScreenState extends State<AuthScreen> {
   final login = TextEditingController();
   final password = TextEditingController();
   final email = TextEditingController();
+  final loginFocus = FocusNode();
+  final passwordFocus = FocusNode();
+  final emailFocus = FocusNode();
+  bool obscurePassword = true;
+  String? validationMessage;
+
   @override
   void dispose() {
     login.dispose();
     password.dispose();
     email.dispose();
+    loginFocus.dispose();
+    passwordFocus.dispose();
+    emailFocus.dispose();
     super.dispose();
+  }
+
+  bool _validate(AuthViewModel vm) {
+    final loginValue = login.text.trim();
+    final passwordValue = password.text;
+    final emailValue = email.text.trim();
+    setState(() {
+      validationMessage =
+          loginValue.isEmpty ||
+              passwordValue.isEmpty ||
+              (vm.registerMode && emailValue.isEmpty)
+          ? 'Enter your ${vm.registerMode ? 'email, login, and ' : ''}password to continue.'
+          : null;
+    });
+    return validationMessage == null;
+  }
+
+  Future<void> _submit(AuthViewModel vm) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (!_validate(vm)) return;
+    if (await vm.submit(login.text, password.text, email: email.text) &&
+        mounted) {
+      widget.onAuthenticated();
+    }
+  }
+
+  Widget _field({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String label,
+    required String hint,
+    TextInputType? keyboardType,
+    TextInputAction? textInputAction,
+    FocusNode? nextFocus,
+    bool obscureText = false,
+    Widget? suffixIcon,
+  }) {
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      obscureText: obscureText,
+      onSubmitted: nextFocus == null ? null : (_) => nextFocus.requestFocus(),
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(
+          label == 'Password' ? Icons.lock_outline : Icons.person_outline,
+          semanticLabel: '$label icon',
+        ),
+        suffixIcon: suffixIcon,
+      ),
+    );
+  }
+
+  Widget _socialButton(
+    BuildContext context,
+    AuthViewModel vm, {
+    required String provider,
+    required Widget icon,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: vm.state.isBusy
+          ? null
+          : () {
+              vm.showSocialAuthUnavailable(provider);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('$provider sign-in is not configured yet.'),
+                ),
+              );
+            },
+      icon: icon,
+      label: Text('Continue with $provider'),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.authCanvas,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.fromLTRB(
+              20,
+              24,
+              20,
+              MediaQuery.viewInsetsOf(context).bottom + 24,
+            ),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: ViewModelBuilder<AuthViewModel>(
-                viewModel: widget.viewModel,
-                builder: (context, vm) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Tam Dan',
-                      style: Theme.of(context).textTheme.headlineLarge,
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - 48,
+                maxWidth: 440,
+              ),
+              child: Center(
+                child: ViewModelBuilder<AuthViewModel>(
+                  viewModel: widget.viewModel,
+                  builder: (context, vm) => Card(
+                    color: AppTheme.authCard,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.authRadius),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      vm.registerMode
-                          ? 'Create a parent account'
-                          : 'Your family safety center',
-                    ),
-                    const SizedBox(height: 28),
-                    if (vm.registerMode) ...[
-                      TextField(
-                        controller: email,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(labelText: 'Email'),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    TextField(
-                      controller: login,
-                      decoration: const InputDecoration(labelText: 'Login'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: password,
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                    ),
-                    const SizedBox(height: 16),
-                    stateMessage(vm.state.status, message: vm.message),
-                    ElevatedButton(
-                      onPressed: vm.state.isBusy
-                          ? null
-                          : () async {
-                              if (await vm.submit(
-                                login.text,
-                                password.text,
-                                email: email.text,
-                              )) {
-                                widget.onAuthenticated();
-                              }
-                            },
-                      child: Text(
-                        vm.registerMode ? 'Create account' : 'Sign in',
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: vm.state.isBusy
-                          ? null
-                          : () => setState(
-                              () => vm.registerMode = !vm.registerMode,
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Semantics(
+                            label: 'Tam Dan logo',
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: CircleAvatar(
+                                radius: 28,
+                                backgroundColor: AppTheme.authAccent,
+                                child: Text(
+                                  'TD',
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                ),
+                              ),
                             ),
-                      child: Text(
-                        vm.registerMode
-                            ? 'I already have an account'
-                            : 'Create an account',
+                          ),
+                          const SizedBox(height: 22),
+                          Text(
+                            'Tam Dan',
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: AppTheme.ink,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            vm.registerMode
+                                ? 'Create your parent account'
+                                : 'Your family safety center',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(color: AppTheme.authMuted),
+                          ),
+                          const SizedBox(height: 26),
+                          if (vm.registerMode) ...[
+                            _field(
+                              controller: email,
+                              focusNode: emailFocus,
+                              label: 'Email',
+                              hint: 'you@example.com',
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              nextFocus: loginFocus,
+                            ),
+                            const SizedBox(height: 14),
+                          ],
+                          _field(
+                            controller: login,
+                            focusNode: loginFocus,
+                            label: 'Login',
+                            hint: 'Enter your login',
+                            textInputAction: TextInputAction.next,
+                            nextFocus: passwordFocus,
+                          ),
+                          const SizedBox(height: 14),
+                          _field(
+                            controller: password,
+                            focusNode: passwordFocus,
+                            label: 'Password',
+                            hint: 'Enter your password',
+                            textInputAction: TextInputAction.done,
+                            obscureText: obscurePassword,
+                            suffixIcon: IconButton(
+                              tooltip: obscurePassword
+                                  ? 'Show password'
+                                  : 'Hide password',
+                              onPressed: () => setState(
+                                () => obscurePassword = !obscurePassword,
+                              ),
+                              icon: Icon(
+                                obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                            ),
+                          ),
+                          if (validationMessage != null) ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              validationMessage!,
+                              semanticsLabel: validationMessage,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 18),
+                          stateMessage(vm.state.status, message: vm.message),
+                          ElevatedButton(
+                            onPressed: vm.state.isBusy
+                                ? null
+                                : () => _submit(vm),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.authAccent,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: vm.state.isBusy
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    vm.registerMode
+                                        ? 'Create account'
+                                        : 'Sign in',
+                                  ),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              const Expanded(child: Divider()),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: Text(
+                                  'OR',
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(color: AppTheme.authMuted),
+                                ),
+                              ),
+                              const Expanded(child: Divider()),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _socialButton(
+                            context,
+                            vm,
+                            provider: 'Google',
+                            icon: const Text(
+                              'G',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _socialButton(
+                            context,
+                            vm,
+                            provider: 'Apple',
+                            icon: const Icon(Icons.apple),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Social sign-in is not configured yet.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.authMuted),
+                          ),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: vm.state.isBusy
+                                ? null
+                                : () => setState(() {
+                                    vm.registerMode = !vm.registerMode;
+                                    validationMessage = null;
+                                    vm.clearMessage();
+                                  }),
+                            child: Text(
+                              vm.registerMode
+                                  ? 'Already have an account? Sign in'
+                                  : 'New to Tam Dan? Create an account',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),

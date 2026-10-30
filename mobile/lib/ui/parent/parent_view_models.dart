@@ -40,14 +40,16 @@ abstract class BaseViewModel extends ChangeNotifier {
 
   String readableError(Object error) {
     if (error is ApiException) {
-      if (error.isOffline) return error.message;
+      if (error.isOffline) {
+        return 'You appear to be offline. Check your connection and try again.';
+      }
       if (error.isUnauthorized) {
         return 'Your session has expired. Sign in again.';
       }
-      return error.message;
+      return 'Something went wrong. Please try again.';
     }
     if (error is ArgumentError) {
-      return error.message?.toString() ?? 'Check the entered values.';
+      return 'Check the entered values and try again.';
     }
     return 'Something went wrong. Please try again.';
   }
@@ -60,6 +62,7 @@ class AuthViewModel extends BaseViewModel {
   bool registerMode = false;
 
   Future<bool> submit(String login, String password, {String? email}) async {
+    _message = null;
     state = const AsyncState(status: LoadStatus.loading);
     notifyListeners();
     try {
@@ -76,7 +79,7 @@ class AuthViewModel extends BaseViewModel {
       notifyListeners();
       return true;
     } catch (error) {
-      _message = readableError(error);
+      _message = registerMode ? _registrationError(error) : _loginError(error);
       state = AsyncState(
         status: error is ApiException && error.isUnauthorized
             ? LoadStatus.unauthorized
@@ -88,6 +91,28 @@ class AuthViewModel extends BaseViewModel {
       notifyListeners();
       return false;
     }
+  }
+
+  String _loginError(Object error) {
+    if (error is ApiException && error.isOffline) {
+      return readableError(error);
+    }
+    if (error is ApiException && error.isUnauthorized) {
+      return readableError(error);
+    }
+    return 'We couldn’t sign you in. Check your details and try again.';
+  }
+
+  String _registrationError(Object error) {
+    if (error is ApiException && error.isOffline) {
+      return readableError(error);
+    }
+    return 'We couldn’t create your account. Check your details and try again.';
+  }
+
+  void showSocialAuthUnavailable(String provider) {
+    _message = '$provider sign-in is not configured yet.';
+    notifyListeners();
   }
 
   Future<void> recoverSession() async {
