@@ -10,6 +10,7 @@ Each software component has an independent product requirements document:
 6. [Integration Hardening and OWASP Security Remediation](06-integration-hardening-security/README.md)
 7. [Remaining Product Completion](07-remaining-product-completion/README.md)
 8. [Security Evidence Completion and NEEDS-FIX Closure](08-security-evidence-completion/README.md)
+9. [Production Readiness](09-production-readiness/README.md) — proposed production release gate.
 
 ## Backlog
 
