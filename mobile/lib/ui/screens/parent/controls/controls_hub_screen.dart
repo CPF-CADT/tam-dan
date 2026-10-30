@@ -4,6 +4,8 @@ import '../../../../model/parent_models.dart';
 import '../home/parent_visual_tokens.dart';
 import '../view_model/parent_view_models.dart';
 import 'app_rule_screen.dart';
+import 'game_internet_screen.dart';
+import 'website_safety_screen.dart';
 
 class ControlsHubScreen extends StatefulWidget {
   const ControlsHubScreen({
@@ -55,14 +57,28 @@ class _ControlsHubScreenState extends State<ControlsHubScreen> {
       _ControlLink(
         icon: Icons.language,
         title: 'Websites',
-        detail: 'Domain enforcement is unsupported',
-        onTap: null,
+        detail: 'Review website policies and block a domain',
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => WebsiteSafetyScreen(
+              child: widget.child,
+              viewModel: widget.viewModel,
+            ),
+          ),
+        ),
       ),
       _ControlLink(
         icon: Icons.sports_esports_outlined,
         title: 'Online games',
-        detail: 'Allow, schedule, or pause internet is unsupported',
-        onTap: null,
+        detail: 'View game policies and confirmed state',
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => GameInternetScreen(
+              child: widget.child,
+              viewModel: widget.viewModel,
+            ),
+          ),
+        ),
       ),
       _ControlLink(
         icon: Icons.schedule,
