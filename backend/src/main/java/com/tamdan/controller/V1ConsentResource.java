@@ -9,6 +9,8 @@ import com.tamdan.security.AuthenticatedUserIdResolver;
 import com.tamdan.service.consent.ConsentService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,16 +31,22 @@ public class V1ConsentResource {
     private final AuthenticatedDeviceIdResolver authenticatedDeviceIdResolver;
 
     @GetMapping("/families/me/children/{childId}/consent")
+    @Operation(operationId = "getChildConsent", summary = "Read child consent")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<ConsentV1Response> get(@PathVariable Long childId) {
         return ApiResponse.success(consentService.currentDecision(authenticatedUserIdResolver.requireCurrentUserId(), childId));
     }
 
     @PutMapping("/families/me/children/{childId}/consent")
+    @Operation(operationId = "recordChildConsent", summary = "Record child consent")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<ConsentV1Response> put(@PathVariable Long childId, @Valid @RequestBody ConsentDecisionRequest request) {
         return ApiResponse.success(consentService.recordDecision(authenticatedUserIdResolver.requireCurrentUserId(), childId, request));
     }
 
     @PostMapping("/devices/me/consent")
+    @Operation(operationId = "confirmDeviceConsentDisclosure", summary = "Confirm consent disclosure on a device")
+    @SecurityRequirement(name = "deviceCredential")
     public ResponseEntity<Void> confirm(@Valid @RequestBody ConsentDisclosureConfirmation request) {
         consentService.confirmDisclosure(authenticatedDeviceIdResolver.requireAuthenticatedDeviceId(), request.version(), request.confirmedAt());
         return ResponseEntity.noContent().build();

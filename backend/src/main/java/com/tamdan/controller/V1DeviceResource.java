@@ -12,6 +12,8 @@ import com.tamdan.service.device.DeviceHealthService;
 import com.tamdan.service.device.DeviceService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,11 +38,15 @@ public class V1DeviceResource {
     private final AuthenticatedDeviceIdResolver authenticatedDeviceIdResolver;
 
     @GetMapping("/families/me/children/{childId}/devices")
+    @Operation(operationId = "listDevices", summary = "List devices paired to a child")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<List<DeviceV1Response>> list(@PathVariable Long childId) {
         return ApiResponse.success(deviceService.listV1(authenticatedUserIdResolver.requireCurrentUserId(), childId));
     }
 
     @PatchMapping("/families/me/children/{childId}/devices/{deviceId}")
+    @Operation(operationId = "renameDevice", summary = "Rename a paired device")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<DeviceV1Response> rename(
         @PathVariable Long childId,
         @PathVariable Long deviceId,
@@ -51,6 +57,8 @@ public class V1DeviceResource {
     }
 
     @PostMapping("/families/me/children/{childId}/devices/{deviceId}/revocation")
+    @Operation(operationId = "revokeDevice", summary = "Revoke a paired device")
+    @SecurityRequirement(name = "parentJwt")
     public ResponseEntity<Void> revoke(@PathVariable Long childId, @PathVariable Long deviceId) {
         Long parentId = authenticatedUserIdResolver.requireCurrentUserId();
         deviceService.ensureParentOwnsDevice(parentId, childId, deviceId);
@@ -59,6 +67,8 @@ public class V1DeviceResource {
     }
 
     @PostMapping("/families/me/children/{childId}/devices/{deviceId}/credential-rotation")
+    @Operation(operationId = "rotateDeviceCredential", summary = "Rotate a device credential")
+    @SecurityRequirement(name = "parentJwt")
     public ResponseEntity<ApiResponse<DeviceCredentialResponse>> rotate(@PathVariable Long childId, @PathVariable Long deviceId) {
         Long parentId = authenticatedUserIdResolver.requireCurrentUserId();
         deviceService.ensureParentOwnsDevice(parentId, childId, deviceId);
@@ -66,12 +76,20 @@ public class V1DeviceResource {
     }
 
     @PutMapping("/devices/me/health")
+    @Operation(
+        operationId = "updateDeviceHealth",
+        summary = "Report device health",
+        description = "The device reports its own state. UNSUPPORTED is a truthful capability state and must not be treated as active enforcement."
+    )
+    @SecurityRequirement(name = "deviceCredential")
     public ResponseEntity<Void> updateHealth(@Valid @RequestBody DeviceHealthUpdateRequest request) {
         deviceHealthService.update(authenticatedDeviceIdResolver.requireAuthenticatedDeviceId(), request);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/families/me/children/{childId}/devices/{deviceId}/health")
+    @Operation(operationId = "getDeviceHealth", summary = "Read device health")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<DeviceHealthResponse> getHealth(@PathVariable Long childId, @PathVariable Long deviceId) {
         return ApiResponse.success(deviceHealthService.get(authenticatedUserIdResolver.requireCurrentUserId(), childId, deviceId));
     }

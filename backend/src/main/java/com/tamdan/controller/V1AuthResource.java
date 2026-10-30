@@ -11,6 +11,8 @@ import com.tamdan.service.auth.AuthenticationService;
 import com.tamdan.service.auth.UserService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,27 +31,35 @@ public class V1AuthResource {
     private final AuthenticatedUserIdResolver authenticatedUserIdResolver;
 
     @PostMapping("/register")
+    @Operation(operationId = "registerParent", summary = "Register a parent account")
+    @SecurityRequirements
     public ResponseEntity<ApiResponse<ParentAccountResponse>> register(@Valid @RequestBody RegisterParentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userService.register(request)));
     }
 
     @PostMapping("/login")
+    @Operation(operationId = "loginParent", summary = "Authenticate a parent")
+    @SecurityRequirements
     public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         return ApiResponse.success(authenticationService.login(request));
     }
 
     @PostMapping("/refresh")
+    @Operation(operationId = "refreshParent", summary = "Refresh a parent session")
+    @SecurityRequirements
     public ApiResponse<TokenResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         return ApiResponse.success(authenticationService.refresh(request));
     }
 
     @PostMapping("/logout")
+    @Operation(operationId = "logoutParent", summary = "Revoke a parent session")
     public ResponseEntity<Void> logout(@Valid @RequestBody RefreshRequest request) {
         authenticationService.logout(request.refreshToken());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/logout-all")
+    @Operation(operationId = "logoutAllParentSessions", summary = "Revoke all parent sessions")
     public ResponseEntity<Void> logoutAll() {
         authenticationService.logoutAll(authenticatedUserIdResolver.requireCurrentUserId());
         return ResponseEntity.noContent().build();

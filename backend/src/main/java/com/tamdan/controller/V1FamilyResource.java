@@ -9,6 +9,8 @@ import com.tamdan.security.AuthenticatedUserIdResolver;
 import com.tamdan.service.family.ChildProfileService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,23 +33,31 @@ public class V1FamilyResource {
     private final AuthenticatedUserIdResolver authenticatedUserIdResolver;
 
     @GetMapping
+    @Operation(operationId = "listChildren", summary = "List children in the current family")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<List<ChildV1Response>> listChildren() {
         return ApiResponse.success(childProfileService.list(authenticatedUserIdResolver.requireCurrentUserId()).stream().map(this::toResponse).toList());
     }
 
     @PostMapping
+    @Operation(operationId = "createChild", summary = "Create a child profile")
+    @SecurityRequirement(name = "parentJwt")
     public ResponseEntity<ApiResponse<ChildV1Response>> createChild(@Valid @RequestBody CreateChildRequest request) {
         ChildProfileResponse child = childProfileService.create(authenticatedUserIdResolver.requireCurrentUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(toResponse(child)));
     }
 
     @PatchMapping("/{childId}")
+    @Operation(operationId = "updateChild", summary = "Rename a child profile")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<ChildV1Response> updateChild(@PathVariable Long childId, @Valid @RequestBody UpdateChildV1Request request) {
         ChildProfileResponse child = childProfileService.updateDisplayName(authenticatedUserIdResolver.requireCurrentUserId(), childId, request.displayName());
         return ApiResponse.success(toResponse(child));
     }
 
     @PostMapping("/{childId}/deactivation")
+    @Operation(operationId = "deactivateChild", summary = "Deactivate a child profile")
+    @SecurityRequirement(name = "parentJwt")
     public ResponseEntity<Void> deactivateChild(@PathVariable Long childId) {
         childProfileService.deactivate(authenticatedUserIdResolver.requireCurrentUserId(), childId);
         return ResponseEntity.noContent().build();

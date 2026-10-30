@@ -16,6 +16,8 @@ import com.tamdan.service.safety.PolicyService;
 import com.tamdan.service.reporting.UsageReportService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -44,17 +46,23 @@ public class SafetyPolicyResource {
     private final PolicyService policyService;
 
     @GetMapping("/{childId}/reports/usage")
+    @Operation(operationId = "getUsageReport", summary = "Read a child usage report")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<UsageReportResponse> usageReport(@PathVariable Long childId, @RequestParam Instant from, @RequestParam Instant to) {
         return ApiResponse.success(usageReportService.getReport(parentResolver.requireCurrentUserId(), childId, from, to));
     }
 
     @GetMapping("/{childId}/alerts")
+    @Operation(operationId = "listAlerts", summary = "List child alerts")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<AlertPageResponse> alerts(@PathVariable Long childId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int pageSize) {
         if (page < 0 || pageSize < 1 || pageSize > 100) throw new com.tamdan.exception.BadRequestException("Invalid page bounds");
         return ApiResponse.success(alertService.list(parentResolver.requireCurrentUserId(), childId, page, pageSize));
     }
 
     @GetMapping("/{childId}/policies")
+    @Operation(operationId = "listPolicies", summary = "List child policies")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<PolicyPageResponse> policies(@PathVariable Long childId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int pageSize) {
         if (page < 0 || pageSize < 1 || pageSize > 100) throw new com.tamdan.exception.BadRequestException("Invalid page bounds");
         Page<PolicyResponse> result = policyService.list(parentResolver.requireCurrentUserId(), childId, page, pageSize);
@@ -62,27 +70,41 @@ public class SafetyPolicyResource {
     }
 
     @PostMapping("/{childId}/policies")
+    @Operation(operationId = "createPolicy", summary = "Create a child policy")
+    @SecurityRequirement(name = "parentJwt")
     public ResponseEntity<ApiResponse<PolicyResponse>> createPolicy(@PathVariable Long childId, @Valid @RequestBody PolicyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(policyService.create(parentResolver.requireCurrentUserId(), childId, request)));
     }
 
     @PatchMapping("/{childId}/policies/{policyId}")
+    @Operation(operationId = "updatePolicy", summary = "Update a child policy")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<PolicyResponse> updatePolicy(@PathVariable Long childId, @PathVariable Long policyId, @Valid @RequestBody PolicyRequest request) {
         return ApiResponse.success(policyService.update(parentResolver.requireCurrentUserId(), childId, policyId, request));
     }
 
     @DeleteMapping("/{childId}/policies/{policyId}")
+    @Operation(operationId = "removePolicy", summary = "Remove a child policy")
+    @SecurityRequirement(name = "parentJwt")
     public ResponseEntity<Void> removePolicy(@PathVariable Long childId, @PathVariable Long policyId) {
         policyService.remove(parentResolver.requireCurrentUserId(), childId, policyId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{childId}/policies/{policyId}/pause")
+    @Operation(operationId = "pausePolicy", summary = "Pause a child policy")
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<PolicyResponse> pausePolicy(@PathVariable Long childId, @PathVariable Long policyId) {
         return ApiResponse.success(policyService.pause(parentResolver.requireCurrentUserId(), childId, policyId));
     }
 
     @GetMapping("/{childId}/policies/{policyId}/delivery")
+    @Operation(
+        operationId = "getPolicyDeliveryStatus",
+        summary = "Read policy delivery status",
+        description = "UNSUPPORTED is a visible capability state when a device cannot enforce the policy."
+    )
+    @SecurityRequirement(name = "parentJwt")
     public ApiResponse<PolicyDeliveryResponse> delivery(@PathVariable Long childId, @PathVariable Long policyId) {
         return ApiResponse.success(policyService.delivery(parentResolver.requireCurrentUserId(), childId, policyId));
     }

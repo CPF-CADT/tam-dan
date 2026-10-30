@@ -9,6 +9,9 @@ import com.tamdan.security.AuthenticatedUserIdResolver;
 import com.tamdan.service.device.PairingService;
 import com.tamdan.web.ApiPaths;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +30,16 @@ public class V1PairingResource {
     private final AuthenticatedUserIdResolver authenticatedUserIdResolver;
 
     @PostMapping("/families/me/children/{childId}/pairing-codes")
+    @Operation(operationId = "createPairingCode", summary = "Create a one-time pairing code")
+    @SecurityRequirement(name = "parentJwt")
     public ResponseEntity<ApiResponse<PairingCodeResponse>> createCode(@PathVariable Long childId) {
         PairingCodeResponse response = pairingService.createPairingCode(authenticatedUserIdResolver.requireCurrentUserId(), childId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @PostMapping("/pairing/complete")
+    @Operation(operationId = "completeDevicePairing", summary = "Complete device pairing")
+    @SecurityRequirements
     public ResponseEntity<ApiResponse<PairingCompletionResponse>> complete(@Valid @RequestBody CompletePairingRequest request) {
         DeviceCredentialResponse credential = pairingService.completePairing(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(pairingService.toV1Completion(credential)));

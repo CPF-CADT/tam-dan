@@ -220,7 +220,7 @@ jhipster:
     management-include-pattern: /management/**
     title: Tamdan API
     description: Tamdan API documentation
-    version: 0.0.1
+    version: 1.2.0
     terms-of-service-url:
     contact-name:
     contact-url:
