@@ -176,6 +176,26 @@ class SafetyPolicyFlowIT {
             .isInstanceOf(ForbiddenException.class);
     }
 
+    @Test
+    void unsupportedDomainEnforcementRemainsVisibleAsUnsupported() {
+        Fixture fixture = fixture("unsupported-domain");
+        var policy = policyService.create(
+            fixture.parent().getId(),
+            fixture.child().getId(),
+            new PolicyRequest(com.tamdan.entities.SafetyPolicy.Type.DOMAIN, "example.com")
+        );
+
+        acknowledgementService.acknowledge(
+            fixture.deviceContext(),
+            policy.id(),
+            new PolicyAcknowledgementRequest(policy.version(), PolicyDelivery.State.UNSUPPORTED, Instant.now(), null)
+        );
+
+        assertThat(policyService.list(fixture.parent().getId(), fixture.child().getId(), 0, 20))
+            .singleElement()
+            .satisfies(response -> assertThat(response.state()).isEqualTo(com.tamdan.entities.SafetyPolicy.State.UNSUPPORTED));
+    }
+
     private Fixture fixture(String prefix) {
         User parent = userRepository.saveAndFlush(
             User.builder()

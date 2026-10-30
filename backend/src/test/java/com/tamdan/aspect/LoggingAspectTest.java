@@ -96,4 +96,20 @@ class LoggingAspectTest {
         assertThat(messages()).containsExactly("Exception in loggedMethod() with cause = java.lang.RuntimeException: root");
         assertThat(appender.list.getFirst().getThrowableProxy()).isNull();
     }
+
+    @Test
+    void redactsSensitiveExceptionMessages() {
+        aspect.logAfterThrowing(joinPoint, new IllegalStateException("credential=secret-token password=hunter2"));
+
+        assertThat(messages()).containsExactly("Exception in loggedMethod() with cause = '[REDACTED]' and exception = '[REDACTED]'");
+        assertThat(messages()).noneMatch(message -> message.contains("secret-token") || message.contains("hunter2"));
+    }
+
+    @Test
+    void redactsInjectionLikeSensitiveInputWithoutLoggingTheInput() {
+        aspect.logAfterThrowing(joinPoint, new IllegalStateException("pairing code=abc' OR '1'='1"));
+
+        assertThat(messages()).containsExactly("Exception in loggedMethod() with cause = '[REDACTED]' and exception = '[REDACTED]'");
+        assertThat(messages()).noneMatch(message -> message.contains("abc") || message.contains("OR"));
+    }
 }
