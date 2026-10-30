@@ -55,7 +55,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Tam Dan', style: AppTextStyles.heading),
+                            const Text('Tam Dan', style: AppTextStyles.title),
                             Text(
                               'Child online safety',
                               style: AppTextStyles.label,

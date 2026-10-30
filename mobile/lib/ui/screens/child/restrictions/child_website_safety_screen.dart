@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/segmented_tabs.dart';
 import '../view_model/child_view_model.dart';
 
 class ChildWebsiteSafetyScreen extends StatefulWidget {
@@ -61,15 +62,10 @@ class _WebsiteTabs extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) => SegmentedButton<String>(
-    segments: [
-      ButtonSegment(value: 'Summary', label: Text('Summary')),
-      ButtonSegment(value: 'Blocked', label: Text('Blocked')),
-      ButtonSegment(value: 'Allowed', label: Text('Allowed')),
-    ],
-    selected: {selected},
-    onSelectionChanged: (values) => onChanged(values.first),
-    showSelectedIcon: false,
+  Widget build(BuildContext context) => SegmentedTabs<String>(
+    items: const ['Summary', 'Blocked', 'Allowed'],
+    value: selected,
+    onChanged: onChanged,
   );
 }
 

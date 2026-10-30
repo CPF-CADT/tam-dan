@@ -15,12 +15,7 @@ class ChildSetupButton extends StatelessWidget {
     height: 52,
     child: DecoratedBox(
       decoration: BoxDecoration(
-        gradient: onPressed == null
-            ? null
-            : const LinearGradient(
-                colors: [Color(0xFF0575FF), Color(0xFF059EFF)],
-              ),
-        color: onPressed == null ? AppColors.divider : null,
+        color: onPressed == null ? AppColors.divider : AppColors.primary,
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
       child: ElevatedButton(

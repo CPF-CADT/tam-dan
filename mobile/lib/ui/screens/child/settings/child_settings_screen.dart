@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/status_card.dart';
+import '../../../../core/widgets/status_tone.dart';
 import '../../../../model/child_models.dart';
 import '../view_model/child_view_model.dart';
 
@@ -24,36 +26,45 @@ class ChildSettingsScreen extends StatelessWidget {
           children: [
             const Text('Settings', style: AppTextStyles.title),
             const SizedBox(height: 16),
-            _SettingsRow(
+            StatusCard(
               icon: Icons.verified_user_outlined,
-              title: 'Protection status',
+              label: 'Protection status',
               value: _protectionValue(state.health),
+              tone: _protectionTone(state.health),
             ),
-            _SettingsRow(
+            const SizedBox(height: AppSpacing.small),
+            StatusCard(
               icon: Icons.sync,
-              title: 'Last sync',
+              label: 'Last sync',
               value: _syncValue(state.health),
+              tone: _syncTone(state.health),
             ),
-            _SettingsRow(
+            const SizedBox(height: AppSpacing.small),
+            StatusCard(
               icon: Icons.security,
-              title: 'Permissions',
+              label: 'Permissions',
               value: _permissionValue(state.permission),
+              tone: state.permission == PermissionState.granted
+                  ? StatusTone.success
+                  : StatusTone.warning,
             ),
-            _SettingsRow(
+            const SizedBox(height: AppSpacing.small),
+            StatusCard(
               icon: Icons.phone_android,
-              title: 'Device info',
+              label: 'Device info',
               value: device?.platform ?? 'Unavailable',
             ),
             const SizedBox(height: 20),
             const Text('Support', style: AppTextStyles.title),
-            const _SettingsRow(
+            const StatusCard(
               icon: Icons.help_outline,
-              title: 'Help and privacy',
+              label: 'Help and privacy',
               value: 'Learn about protection',
             ),
-            const _SettingsRow(
+            const SizedBox(height: AppSpacing.small),
+            const StatusCard(
               icon: Icons.info_outline,
-              title: 'About Tam Dan',
+              label: 'About Tam Dan',
               value: 'Version ${AppConstants.childAppVersion}',
             ),
             const SizedBox(height: 8),
@@ -93,26 +104,13 @@ class ChildSettingsScreen extends StatelessWidget {
         PermissionState.unavailable => 'Unavailable',
         PermissionState.unknown => 'Not checked',
       };
-}
+  static StatusTone _protectionTone(ChildHealth? health) =>
+      health?.monitoring == MonitoringState.active
+      ? StatusTone.success
+      : StatusTone.warning;
 
-class _SettingsRow extends StatelessWidget {
-  const _SettingsRow({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String title;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) => Card(
-    child: ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(value),
-      trailing: const Icon(Icons.chevron_right),
-    ),
-  );
+  static StatusTone _syncTone(ChildHealth? health) =>
+      health?.sync == SyncState.current
+      ? StatusTone.success
+      : StatusTone.warning;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/parent_models.dart';
+import '../../../widgets/bottom_navigation.dart';
 import '../view_model/parent_view_models.dart';
 import 'block_domain_screen.dart';
 import 'game_internet_screen.dart';
@@ -323,20 +324,8 @@ class _ParentBottomNavigation extends StatelessWidget {
   final int selected;
   final ValueChanged<int>? onSelected;
   @override
-  Widget build(BuildContext context) => NavigationBar(
-    selectedIndex: selected,
-    onDestinationSelected: onSelected,
-    destinations: const [
-      NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-      NavigationDestination(
-        icon: Icon(Icons.bar_chart_outlined),
-        label: 'Activity',
-      ),
-      NavigationDestination(icon: Icon(Icons.tune), label: 'Controls'),
-      NavigationDestination(
-        icon: Icon(Icons.settings_outlined),
-        label: 'Settings',
-      ),
-    ],
+  Widget build(BuildContext context) => TamDanBottomNavigation(
+    currentIndex: selected,
+    onDestinationSelected: onSelected ?? (_) {},
   );
 }

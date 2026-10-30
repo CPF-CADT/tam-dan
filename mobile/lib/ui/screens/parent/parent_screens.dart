@@ -4,6 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/date_time_utils.dart';
 import '../../../model/parent_models.dart';
 import '../../widgets/view_model_builder.dart';
+import '../../widgets/bottom_navigation.dart';
 import '../../states/state_message.dart';
 import 'activity/activity_summary_screen.dart';
 import 'alerts/safety_alerts_screen.dart';
@@ -490,27 +491,12 @@ class _ParentShellState extends State<_ParentShell> {
                   onLogout: widget.onLogout,
                   showBottomNavigation: false,
                 ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: tab,
+          bottomNavigationBar: TamDanBottomNavigation(
+            currentIndex: tab,
             onDestinationSelected: (value) => setState(() {
               tab = value;
               websiteSafetyDetail = false;
             }),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                label: 'Home',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.bar_chart_outlined),
-                label: 'Activity',
-              ),
-              NavigationDestination(icon: Icon(Icons.tune), label: 'Controls'),
-              NavigationDestination(
-                icon: Icon(Icons.settings_outlined),
-                label: 'Settings',
-              ),
-            ],
           ),
         );
       },

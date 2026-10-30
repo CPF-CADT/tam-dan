@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/segmented_tabs.dart';
 import '../../../../model/parent_models.dart';
 import '../home/parent_visual_tokens.dart';
 import '../view_model/parent_view_models.dart';
@@ -61,15 +62,12 @@ class _ActivitySummaryScreenState extends State<ActivitySummaryScreen> {
           style: const TextStyle(color: ParentVisualTokens.muted, fontSize: 12),
         ),
         const SizedBox(height: 16),
-        SegmentedButton<int>(
-          segments: const [
-            ButtonSegment(value: 0, label: Text('Today')),
-            ButtonSegment(value: 1, label: Text('7 Days')),
-            ButtonSegment(value: 2, label: Text('30 Days')),
-          ],
-          selected: {range},
-          onSelectionChanged: (value) {
-            setState(() => range = value.first);
+        SegmentedTabs<int>(
+          items: const [0, 1, 2],
+          value: range,
+          labelBuilder: (value) => ['Today', '7 Days', '30 Days'][value],
+          onChanged: (value) {
+            setState(() => range = value);
             _load();
           },
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../widgets/bottom_navigation.dart';
 import '../home/child_home_screen.dart';
 import '../restrictions/child_restrictions_screen.dart';
 import '../settings/child_settings_screen.dart';
@@ -32,8 +33,8 @@ class _ChildNavigationShellState extends State<ChildNavigationShell> {
         ChildSettingsScreen(viewModel: widget.viewModel),
       ],
     ),
-    bottomNavigationBar: NavigationBar(
-      selectedIndex: _selectedIndex,
+    bottomNavigationBar: TamDanBottomNavigation(
+      currentIndex: _selectedIndex,
       onDestinationSelected: (index) => setState(() => _selectedIndex = index),
       destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),

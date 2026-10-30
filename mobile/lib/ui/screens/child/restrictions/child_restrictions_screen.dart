@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/segmented_tabs.dart';
 import '../../../../model/child_models.dart';
 import '../view_model/child_view_model.dart';
 import 'child_game_restricted_screen.dart';
@@ -102,15 +103,10 @@ class _RestrictionTabs extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) => SegmentedButton<String>(
-    segments: [
-      ButtonSegment(value: 'Apps', label: Text('Apps')),
-      ButtonSegment(value: 'Website', label: Text('Website')),
-      ButtonSegment(value: 'Games', label: Text('Games')),
-    ],
-    selected: {selected},
-    onSelectionChanged: (values) => onChanged(values.first),
-    showSelectedIcon: false,
+  Widget build(BuildContext context) => SegmentedTabs<String>(
+    items: const ['Apps', 'Website', 'Games'],
+    value: selected,
+    onChanged: onChanged,
   );
 }
 

@@ -23,6 +23,37 @@ abstract final class AppTheme {
       surface: AppColors.canvas,
     ),
     scaffoldBackgroundColor: AppColors.canvas,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.canvas,
+      foregroundColor: AppColors.ink,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      titleTextStyle: AppTextStyles.title,
+    ),
+    cardTheme: CardThemeData(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadii.card)),
+        side: BorderSide(color: AppColors.divider),
+      ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      height: 72,
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: AppColors.paleBlue,
+      indicatorShape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadii.pill)),
+      ),
+      labelTextStyle: const WidgetStatePropertyAll(AppTextStyles.label),
+      iconTheme: const WidgetStatePropertyAll(
+        IconThemeData(color: AppColors.muted, size: 22),
+      ),
+    ),
     textTheme: const TextTheme(
       bodyLarge: AppTextStyles.bodyLarge,
       titleLarge: AppTextStyles.titleLarge,

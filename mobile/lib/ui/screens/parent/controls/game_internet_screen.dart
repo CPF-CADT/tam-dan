@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/parent_models.dart';
+import '../../../widgets/bottom_navigation.dart';
 import '../view_model/parent_view_models.dart';
 import 'parent_ui_tokens.dart';
 
@@ -95,27 +96,9 @@ class GameInternetScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: showBottomNavigation
-          ? NavigationBar(
-              selectedIndex: 2,
-              onDestinationSelected: onNavigate,
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  label: 'Home',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.bar_chart_outlined),
-                  label: 'Activity',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.tune),
-                  label: 'Controls',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  label: 'Settings',
-                ),
-              ],
+          ? TamDanBottomNavigation(
+              currentIndex: 2,
+              onDestinationSelected: onNavigate ?? (_) {},
             )
           : null,
     );

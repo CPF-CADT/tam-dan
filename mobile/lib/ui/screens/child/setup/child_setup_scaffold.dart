@@ -41,7 +41,7 @@ class ChildSetupScaffold extends StatelessWidget {
                   )
                 else
                   const SizedBox(width: 40),
-                const Text('Tam Dan', style: AppTextStyles.heading),
+                const Text('Tam Dan', style: AppTextStyles.title),
               ],
             ),
             const SizedBox(height: AppSpacing.gap),
