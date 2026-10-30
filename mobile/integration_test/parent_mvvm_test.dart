@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/storage/secure_session_store.dart';
-import 'package:mobile/data/repositories/parent_repository.dart';
+import 'package:mobile/data/repositories/parent/parent_repository.dart';
 import 'package:mobile/main.dart';
 
 class _FakeParentClient implements ApiClient {

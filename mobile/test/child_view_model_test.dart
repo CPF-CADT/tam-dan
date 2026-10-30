@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/network/api_client.dart';
-import 'package:mobile/features/child/child_models.dart';
-import 'package:mobile/features/child/child_repository.dart';
-import 'package:mobile/features/child/child_view_model.dart';
-import 'package:mobile/features/child/device_identity.dart';
+import 'package:mobile/data/repositories/child/child_repository.dart';
+import 'package:mobile/model/child_models.dart';
+import 'package:mobile/services/device_identity.dart';
+import 'package:mobile/ui/screens/child/view_model/child_view_model.dart';
 
 class _TestDeviceIdentityProvider implements DeviceIdentityProvider {
   const _TestDeviceIdentityProvider();

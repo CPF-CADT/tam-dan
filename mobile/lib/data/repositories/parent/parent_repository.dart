@@ -1,7 +1,7 @@
-import '../../core/network/api_client.dart';
-import '../../core/storage/secure_session_store.dart';
-import '../../model/parent_models.dart';
-import '../dtos/parent_dtos.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/storage/secure_session_store.dart';
+import '../../../model/parent_models.dart';
+import '../../dtos/parent_dtos.dart';
 
 abstract interface class ParentRepository {
   Future<void> login(String login, String password);

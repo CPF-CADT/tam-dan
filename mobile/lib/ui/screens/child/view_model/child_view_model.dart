@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import '../../core/network/api_client.dart';
-import 'device_identity.dart';
-import 'child_models.dart';
-import 'child_repository.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../data/repositories/child/child_repository.dart';
+import '../../../../model/child_models.dart';
+import '../../../../services/device_identity.dart';
 
 class ChildViewModel extends ChangeNotifier {
   ChildViewModel(

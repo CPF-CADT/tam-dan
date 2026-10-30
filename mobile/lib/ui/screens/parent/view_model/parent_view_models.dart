@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../core/network/api_client.dart';
-import '../../data/repositories/parent_repository.dart';
-import '../../model/parent_models.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../data/repositories/parent/parent_repository.dart';
+import '../../../../model/parent_models.dart';
 
 enum LoadStatus {
   idle,

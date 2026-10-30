@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
-import '../parent_view_models.dart';
+import '../../core/theme/app_spacing.dart';
+import '../screens/parent/view_model/parent_view_models.dart';
 
 Widget stateMessage(LoadStatus status, {String? message, VoidCallback? retry}) {
   final text = switch (status) {
@@ -18,7 +18,7 @@ Widget stateMessage(LoadStatus status, {String? message, VoidCallback? retry}) {
   };
   if (text.isEmpty) return const SizedBox.shrink();
   return Padding(
-    padding: const EdgeInsets.all(AppTheme.gap),
+    padding: const EdgeInsets.all(AppSpacing.gap),
     child: Column(
       children: [
         Text(text, textAlign: TextAlign.center),

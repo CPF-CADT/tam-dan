@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
-import 'child_models.dart';
-import 'child_repository.dart';
+import '../data/repositories/child/child_repository.dart';
+import '../model/child_models.dart';
 
 class PlatformChildDeviceStore implements ChildDeviceStore {
   PlatformChildDeviceStore({MethodChannel? channel})

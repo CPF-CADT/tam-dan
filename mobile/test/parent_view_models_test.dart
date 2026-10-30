@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/storage/secure_session_store.dart';
-import 'package:mobile/data/repositories/parent_repository.dart';
+import 'package:mobile/data/repositories/parent/parent_repository.dart';
 import 'package:mobile/model/parent_models.dart';
-import 'package:mobile/ui/parent/parent_view_models.dart';
+import 'package:mobile/ui/screens/parent/view_model/parent_view_models.dart';
 
 class _FailingRepository implements ParentRepository {
   @override

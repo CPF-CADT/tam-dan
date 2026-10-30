@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-import 'child_models.dart';
+import '../model/child_models.dart';
 
 abstract interface class ChildHealthProvider {
   Future<ChildHealth> readHealth();

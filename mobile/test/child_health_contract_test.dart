@@ -1,9 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/network/api_client.dart';
-import 'package:mobile/features/child/child_health.dart';
-import 'package:mobile/features/child/child_models.dart';
-import 'package:mobile/features/child/child_repository.dart';
+import 'package:mobile/data/repositories/child/child_repository.dart';
+import 'package:mobile/model/child_models.dart';
+import 'package:mobile/services/child_health.dart';
 
 class _RecordingHeaderClient implements ApiClient, HeaderApiClient {
   final calls = <String>[];

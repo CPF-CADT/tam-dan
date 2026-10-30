@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
-import 'child_models.dart';
-import 'child_view_model.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/status_card.dart';
+import '../../../model/child_models.dart';
+import 'view_model/child_view_model.dart';
 
-class ChildSetupScreen extends StatefulWidget {
-  const ChildSetupScreen({super.key, required this.viewModel});
+part 'child_setup_screen.dart';
+part 'child_status_screen.dart';
+part 'child_consent_screen.dart';
+
+class _ChildSetupScreen extends StatefulWidget {
+  const _ChildSetupScreen({required this.viewModel});
   final ChildViewModel viewModel;
 
   @override
-  State<ChildSetupScreen> createState() => _ChildSetupScreenState();
+  State<_ChildSetupScreen> createState() => _ChildSetupScreenState();
 }
 
-class _ChildSetupScreenState extends State<ChildSetupScreen> {
+class _ChildSetupScreenState extends State<_ChildSetupScreen> {
   final _code = TextEditingController();
   final _name = TextEditingController(text: 'Child device');
 
@@ -55,7 +61,7 @@ class _ChildSetupScreenState extends State<ChildSetupScreen> {
                 ? null
                 : () => widget.viewModel.pair(
                     code: _code.text,
-                    appVersion: '1.0.0',
+                    appVersion: AppConstants.childAppVersion,
                     displayName: _name.text,
                   ),
             child: Text(
@@ -102,8 +108,8 @@ class _ChildSetupScreenState extends State<ChildSetupScreen> {
       };
 }
 
-class ChildStatusScreen extends StatelessWidget {
-  const ChildStatusScreen({super.key, required this.viewModel});
+class _ChildStatusScreen extends StatelessWidget {
+  const _ChildStatusScreen({required this.viewModel});
   final ChildViewModel viewModel;
 
   @override
@@ -130,15 +136,15 @@ class ChildStatusScreen extends StatelessWidget {
                 message:
                     'Showing the last known status. New activity is not confirmed until synchronization succeeds.',
               ),
-            _statusCard(
-              'Monitoring',
-              state.health?.monitoring.name ?? 'unknown',
+            StatusCard(
+              label: 'Monitoring',
+              value: state.health?.monitoring.name ?? 'unknown',
             ),
-            _statusCard(
-              'Synchronization',
-              state.health?.sync.name ?? 'unknown',
+            StatusCard(
+              label: 'Synchronization',
+              value: state.health?.sync.name ?? 'unknown',
             ),
-            _statusCard('Permission', state.permission.name),
+            StatusCard(label: 'Permission', value: state.permission.name),
             const SizedBox(height: AppTheme.gap),
             const Text(
               'Active policies',
@@ -167,18 +173,10 @@ class ChildStatusScreen extends StatelessWidget {
       );
     },
   );
-
-  Widget _statusCard(String label, String value) => Card(
-    child: ListTile(title: Text(label), trailing: Text(value)),
-  );
 }
 
-class ChildConsentScreen extends StatelessWidget {
-  const ChildConsentScreen({
-    super.key,
-    required this.viewModel,
-    this.version = 'v1',
-  });
+class _ChildConsentScreen extends StatelessWidget {
+  const _ChildConsentScreen({required this.viewModel, this.version = 'v1'});
   final ChildViewModel viewModel;
   final String version;
 

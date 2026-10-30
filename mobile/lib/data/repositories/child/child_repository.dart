@@ -1,6 +1,6 @@
-import '../../core/network/api_client.dart';
-import 'child_health.dart';
-import 'child_models.dart';
+import '../../../core/network/api_client.dart';
+import '../../../model/child_models.dart';
+import '../../../services/child_health.dart';
 
 abstract interface class ChildDeviceStore {
   Future<String?> readCredential();

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:mobile/features/child/child_health.dart';
-import 'package:mobile/features/child/child_models.dart';
+import 'package:mobile/model/child_models.dart';
+import 'package:mobile/services/child_health.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

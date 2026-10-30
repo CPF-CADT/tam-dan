@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
-import '../../model/parent_models.dart';
-import 'policies_tab.dart';
-import 'parent_view_models.dart';
-import 'widgets/state_message.dart';
-import 'widgets/view_model_builder.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/date_time_utils.dart';
+import '../../../model/parent_models.dart';
+import '../../widgets/view_model_builder.dart';
+import '../../states/state_message.dart';
+import 'view_model/parent_view_models.dart';
 
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({
-    super.key,
-    required this.viewModel,
-    required this.onAuthenticated,
-  });
+part 'auth_screen.dart';
+part 'parent_screen.dart';
+part 'widgets/overview_tab.dart';
+part 'widgets/alerts_tab.dart';
+part 'widgets/policies_tab.dart';
+
+class _AuthScreen extends StatefulWidget {
+  const _AuthScreen({required this.viewModel, required this.onAuthenticated});
   final AuthViewModel viewModel;
   final VoidCallback onAuthenticated;
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  State<_AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends State<_AuthScreen> {
   final login = TextEditingController();
   final password = TextEditingController();
   final email = TextEditingController();
@@ -337,9 +339,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 }
 
-class ParentShell extends StatefulWidget {
-  const ParentShell({
-    super.key,
+class _ParentShell extends StatefulWidget {
+  const _ParentShell({
     required this.children,
     required this.devices,
     required this.reports,
@@ -354,10 +355,10 @@ class ParentShell extends StatefulWidget {
   final PolicyViewModel policies;
   final VoidCallback onLogout;
   @override
-  State<ParentShell> createState() => _ParentShellState();
+  State<_ParentShell> createState() => _ParentShellState();
 }
 
-class _ParentShellState extends State<ParentShell> {
+class _ParentShellState extends State<_ParentShell> {
   int tab = 0;
   @override
   void initState() {
@@ -441,9 +442,8 @@ class _ParentShellState extends State<ParentShell> {
   }
 }
 
-class OverviewTab extends StatelessWidget {
-  const OverviewTab({
-    super.key,
+class _OverviewTab extends StatelessWidget {
+  const _OverviewTab({
     required this.child,
     required this.devices,
     required this.reports,
@@ -499,7 +499,9 @@ class OverviewTab extends StatelessWidget {
                   if (vm.pairingCode != null)
                     Text('Pairing code: ${vm.pairingCode}'),
                   if (vm.pairingExpiresAt != null)
-                    Text('Expires: ${vm.pairingExpiresAt!.toLocal()}'),
+                    Text(
+                      'Expires: ${DateTimeUtils.localText(vm.pairingExpiresAt!)}',
+                    ),
                 ],
               ),
             ),
@@ -524,7 +526,9 @@ class OverviewTab extends StatelessWidget {
                   ),
                   stateMessage(vm.state.status, message: vm.state.message),
                   if (report != null) ...[
-                    Text('Data through ${report.dataThrough.toLocal()}'),
+                    Text(
+                      'Data through ${DateTimeUtils.localText(report.dataThrough)}',
+                    ),
                     Text('Freshness: ${report.freshness.name}'),
                     Text('Completeness: ${report.completeness.name}'),
                     Text('Risk: ${report.risk.name}'),
@@ -554,8 +558,8 @@ class OverviewTab extends StatelessWidget {
   }
 }
 
-class AlertsTab extends StatelessWidget {
-  const AlertsTab({super.key, required this.child, required this.viewModel});
+class _AlertsTab extends StatelessWidget {
+  const _AlertsTab({required this.child, required this.viewModel});
   final Child child;
   final AlertViewModel viewModel;
   @override
@@ -591,5 +595,116 @@ class AlertsTab extends StatelessWidget {
             )
           : Text(alert.state.name),
     ),
+  );
+}
+
+class _PoliciesTab extends StatelessWidget {
+  const _PoliciesTab({required this.child, required this.viewModel});
+  final Child child;
+  final PolicyViewModel viewModel;
+  @override
+  Widget build(BuildContext context) => ViewModelBuilder<PolicyViewModel>(
+    viewModel: viewModel,
+    builder: (context, vm) {
+      if (vm.state.status == LoadStatus.idle) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => vm.load(child.id));
+      }
+      return ListView(
+        padding: const EdgeInsets.all(AppTheme.gap),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Policies',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              IconButton(
+                tooltip: 'Add policy',
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) =>
+                      _PolicyDialog(childId: child.id, viewModel: vm),
+                ),
+                icon: const Icon(Icons.add),
+              ),
+            ],
+          ),
+          stateMessage(
+            vm.state.status,
+            message: vm.state.message,
+            retry: () => vm.load(child.id),
+          ),
+          ...?vm.state.value?.map((policy) => _policyCard(policy)),
+        ],
+      );
+    },
+  );
+
+  Widget _policyCard(Policy policy) => Card(
+    child: ListTile(
+      title: Text(policy.target),
+      subtitle: Text('${policy.type.name} • version ${policy.version}'),
+      trailing: Text(policy.state.name),
+    ),
+  );
+}
+
+class _PolicyDialog extends StatefulWidget {
+  const _PolicyDialog({required this.childId, required this.viewModel});
+  final int childId;
+  final PolicyViewModel viewModel;
+  @override
+  State<_PolicyDialog> createState() => _PolicyDialogState();
+}
+
+class _PolicyDialogState extends State<_PolicyDialog> {
+  final target = TextEditingController();
+  PolicyType type = PolicyType.domain;
+  @override
+  void dispose() {
+    target.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('New policy'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DropdownButtonFormField<PolicyType>(
+          initialValue: type,
+          items: PolicyType.values
+              .map(
+                (value) =>
+                    DropdownMenuItem(value: value, child: Text(value.name)),
+              )
+              .toList(),
+          onChanged: (value) => setState(() => type = value ?? type),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: target,
+          maxLength: 255,
+          decoration: const InputDecoration(
+            labelText: 'Application, game, or domain',
+          ),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      ElevatedButton(
+        onPressed: () async {
+          await widget.viewModel.create(widget.childId, type, target.text);
+          if (context.mounted) Navigator.pop(context);
+        },
+        child: const Text('Save'),
+      ),
+    ],
   );
 }

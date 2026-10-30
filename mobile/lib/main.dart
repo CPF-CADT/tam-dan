@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'core/constants/app_constants.dart';
 import 'core/network/api_client.dart';
 import 'core/storage/secure_session_store.dart';
 import 'core/theme/app_theme.dart';
-import 'data/repositories/parent_repository.dart';
-import 'features/child/child_repository.dart';
-import 'features/child/child_secure_store.dart';
-import 'features/child/child_screens.dart';
-import 'features/child/child_view_model.dart';
-import 'features/child/device_identity.dart';
-import 'ui/parent/parent_screens.dart';
-import 'ui/parent/parent_view_models.dart';
+import 'data/repositories/child/child_repository.dart';
+import 'data/repositories/parent/parent_repository.dart';
+import 'services/child_secure_store.dart';
+import 'services/device_identity.dart';
+import 'ui/screens/child/child_screens.dart';
+import 'ui/screens/child/view_model/child_view_model.dart';
+import 'ui/screens/parent/parent_screens.dart';
+import 'ui/screens/parent/view_model/parent_view_models.dart';
 
 void main() {
   const baseUrl = String.fromEnvironment(
     'TAMDAN_API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8080/api/v1',
+    defaultValue: AppConstants.defaultApiBaseUrl,
   );
   final composition = TamDanComposition.production(Uri.parse(baseUrl));
   const childMode =
