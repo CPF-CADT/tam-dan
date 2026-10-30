@@ -134,22 +134,25 @@ class _RulesState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = viewModel.state;
-    if (state.status == LoadStatus.loading)
+    if (state.status == LoadStatus.loading) {
       return const Center(child: CircularProgressIndicator());
+    }
     if (state.status == LoadStatus.failure ||
-        state.status == LoadStatus.offline)
+        state.status == LoadStatus.offline) {
       return Text(
         state.message ?? 'Rules could not be loaded.',
         style: const TextStyle(color: ParentVisualTokens.error),
       );
+    }
     final rules = state.value ?? const <Policy>[];
-    if (rules.isEmpty)
+    if (rules.isEmpty) {
       return const Card(
         child: ListTile(
           title: Text('No active rules'),
           subtitle: Text('Rules will appear here after the API confirms them.'),
         ),
       );
+    }
     return Column(
       children: [
         for (final rule in rules)

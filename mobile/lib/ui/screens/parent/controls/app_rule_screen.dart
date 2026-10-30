@@ -29,8 +29,9 @@ class _AppRuleScreenState extends State<AppRuleScreen> {
       'YouTube',
     );
     if (mounted) setState(() => saving = false);
-    if (mounted && widget.viewModel.message == null)
+    if (mounted && widget.viewModel.message == null) {
       Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -81,32 +82,30 @@ class _AppRuleScreenState extends State<AppRuleScreen> {
         ),
       ),
       Card(
-        child: Column(
-          children: [
-            RadioListTile<String>(
-              value: 'allow',
-              groupValue: access,
-              onChanged: (value) => setState(() => access = value!),
-              title: const Text('Allow'),
-              subtitle: const Text('Full access'),
-            ),
-            RadioListTile<String>(
-              value: 'limit',
-              groupValue: access,
-              onChanged: (value) => setState(() => access = value!),
-              title: const Text('Limit'),
-              subtitle: const Text(
-                'Policy target only; duration is not supported by the API',
+        child: RadioGroup<String>(
+          groupValue: access,
+          onChanged: (value) => setState(() => access = value!),
+          child: Column(
+            children: [
+              RadioListTile<String>(
+                value: 'allow',
+                title: const Text('Allow'),
+                subtitle: const Text('Full access'),
               ),
-            ),
-            RadioListTile<String>(
-              value: 'block',
-              groupValue: access,
-              onChanged: (value) => setState(() => access = value!),
-              title: const Text('Block'),
-              subtitle: const Text('No access'),
-            ),
-          ],
+              RadioListTile<String>(
+                value: 'limit',
+                title: const Text('Limit'),
+                subtitle: const Text(
+                  'Policy target only; duration is not supported by the API',
+                ),
+              ),
+              RadioListTile<String>(
+                value: 'block',
+                title: const Text('Block'),
+                subtitle: const Text('No access'),
+              ),
+            ],
+          ),
         ),
       ),
       const SizedBox(height: 18),

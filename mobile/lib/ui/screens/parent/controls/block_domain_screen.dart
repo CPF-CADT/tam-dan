@@ -77,26 +77,37 @@ class _BlockDomainScreenState extends State<BlockDomainScreen> {
         const SizedBox(height: 28),
         const Text('Choose duration', style: ParentUiTokens.section),
         const SizedBox(height: 8),
-        for (var i = 0; i < 3; i++)
-          Card(
-            elevation: 0,
-            child: RadioListTile<int>(
-              value: i,
-              groupValue: duration,
-              onChanged: i == 0
-                  ? (value) => setState(() => duration = value ?? duration)
-                  : null,
-              title: Text(
-                const ['Until I allow it', 'For today', 'Custom schedule'][i],
-              ),
-              subtitle: Text(
-                i == 0
-                    ? 'No expiry'
-                    : 'Not supported by the current policy API',
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-            ),
+        RadioGroup<int>(
+          groupValue: duration,
+          onChanged: (value) {
+            if (value != null) setState(() => duration = value);
+          },
+          child: Column(
+            children: [
+              for (var i = 0; i < 3; i++)
+                Card(
+                  elevation: 0,
+                  child: RadioListTile<int>(
+                    value: i,
+                    enabled: i == 0,
+                    title: Text(
+                      const [
+                        'Until I allow it',
+                        'For today',
+                        'Custom schedule',
+                      ][i],
+                    ),
+                    subtitle: Text(
+                      i == 0
+                          ? 'No expiry'
+                          : 'Not supported by the current policy API',
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+            ],
           ),
+        ),
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(

@@ -375,7 +375,7 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CircleAvatar(
     radius: size / 2,
-    backgroundColor: color.withOpacity(.18),
+    backgroundColor: color.withValues(alpha: .18),
     child: Icon(icon, color: color, size: size * .42),
   );
 }

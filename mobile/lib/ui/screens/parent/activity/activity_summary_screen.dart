@@ -146,11 +146,12 @@ class _StateBanner extends StatelessWidget {
     if (status == LoadStatus.loading) return const LinearProgressIndicator();
     if (status == LoadStatus.failure ||
         status == LoadStatus.offline ||
-        status == LoadStatus.unauthorized)
+        status == LoadStatus.unauthorized) {
       return Text(
         message ?? 'Activity could not be loaded.',
         style: const TextStyle(color: ParentVisualTokens.error),
       );
+    }
     return const Text(
       'App history and exact screen-time totals require additional API fields.',
       style: TextStyle(color: ParentVisualTokens.muted, fontSize: 11),
